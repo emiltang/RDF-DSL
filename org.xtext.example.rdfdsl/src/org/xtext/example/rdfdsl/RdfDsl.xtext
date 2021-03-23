@@ -1,0 +1,9 @@
+grammar org.xtext.example.rdfdsl.RdfDsl with org.eclipse.xtext.common.Terminals
+
+generate rdfDsl "http://www.xtext.org/example/rdfdsl/RdfDsl"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID '!';
