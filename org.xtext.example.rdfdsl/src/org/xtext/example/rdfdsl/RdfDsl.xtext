@@ -4,9 +4,9 @@ generate rdfDsl "http://www.xtext.org/example/rdfdsl/RdfDsl"
 
 Model: 'model' namespaces+=Namespace+;
 
-Namespace: 'namespace' name=ID link=Link (class+=Class)*;
+Namespace: 'namespace' name=ID link=Link (classes+=Klass)*;
 
-Class: 'class' name=ID (':' superClass=ID)? (property+=Property)*;
+Klass: 'class' name=ID (':' superClass=ID)? (property+=Property)*;
 
 Property: 'property' name=ID type=Type (cardinality=Cardinality)?; //default card is 0..*
 

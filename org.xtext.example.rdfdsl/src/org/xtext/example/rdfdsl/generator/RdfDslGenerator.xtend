@@ -9,6 +9,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.xtext.example.rdfdsl.rdfDsl.Model
 import org.xtext.example.rdfdsl.rdfDsl.Namespace
+import org.xtext.example.rdfdsl.rdfDsl.Klass
 
 /**
  * Generates code from your model files on save.
@@ -23,28 +24,41 @@ class RdfDslGenerator extends AbstractGenerator {
 		fsa.generateFile('model.py', model.generate)
 	}
 
-	def dispatch String generate(Model model) {
-		'''
-			import rdflib as rdf		
-			RDF  = rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
-			RDFS = rdf.Namespace('http://www.w3.org/2000/01/rdf-schema#')
-			OWL  = rdf.Namespace('http://www.w3.org/2002/07/owl#')
-			XSD  = rdf.Namespace('http://www.w3.org/2001/XMLSchema#')
-			
-			g = rdf.Graph()
-			g.bind('rdf' , RDF)
-			g.bind('rdfs', RDFS)
-			g.bind('owl' , OWL)
-			g.bind('xsd' , XSD)
-			«FOR n : model.namespaces»
-				«n.generate»
-			«ENDFOR»
-		'''
-	}
+	def dispatch String generate(Model model) '''
+		import rdflib as rdf		
+		RDF  = rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+		RDFS = rdf.Namespace('http://www.w3.org/2000/01/rdf-schema#')
+		OWL  = rdf.Namespace('http://www.w3.org/2002/07/owl#')
+		XSD  = rdf.Namespace('http://www.w3.org/2001/XMLSchema#')
+		
+		g = rdf.Graph()
+		g.bind('rdf' , RDF)
+		g.bind('rdfs', RDFS)
+		g.bind('owl' , OWL)
+		g.bind('xsd' , XSD)
+		«FOR n : model.namespaces»
+			«n.generate»
+		«ENDFOR»
+		
+		print(g.serialize(format="turtle").decode("utf-8"))
+	'''
 
-	def dispatch String generate(Namespace ns) {
-		'''
-			g.bind('«ns.name»', rdf.Namespace(«ns.link»))
-		'''
-	}
+	def dispatch String generate(Namespace ns) '''
+		ns = rdf.Namespace(«ns.link»)
+		g.bind('«ns.name»', ns)
+		«FOR n : ns.classes»
+			«n.generate»
+		«ENDFOR»
+	'''
+
+	def dispatch String generate(Klass klass) '''
+		«IF klass.superClass === null »
+			parent = OWL.Class
+		«ELSE»
+			parent = ns['«klass.superClass»']
+		«ENDIF»		
+		entity = ns['«klass.name»']
+		g.add((entity, RDFS.subClassOf, parent))
+	'''
+
 }
