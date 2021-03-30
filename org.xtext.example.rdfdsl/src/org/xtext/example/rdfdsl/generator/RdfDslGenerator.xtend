@@ -31,7 +31,7 @@ class RdfDslGenerator extends AbstractGenerator {
 			OWL  = rdf.Namespace('http://www.w3.org/2002/07/owl#')
 			XSD  = rdf.Namespace('http://www.w3.org/2001/XMLSchema#')
 			
-			g = Graph()
+			g = rdf.Graph()
 			g.bind('rdf' , RDF)
 			g.bind('rdfs', RDFS)
 			g.bind('owl' , OWL)
