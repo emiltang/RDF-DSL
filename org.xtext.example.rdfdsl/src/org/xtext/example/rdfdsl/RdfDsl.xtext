@@ -2,9 +2,9 @@ grammar org.xtext.example.rdfdsl.RdfDsl with org.eclipse.xtext.common.Terminals
 
 generate rdfDsl "http://www.xtext.org/example/rdfdsl/RdfDsl"
 
-Model: 'model' namespace+=Namespace*;
+Model: 'model' namespace+=Namespace+;
 
-Namespace: 'namespace' name=Name link=Link (class+=Class)*;
+Namespace: 'namespace' name=ID link=Link (class+=Class)*;
 
 Class: 'class' name=ID (':' superClass=ID)? (property+=Property)*;
 
@@ -15,8 +15,6 @@ Type: value=ID;
 Cardinality: 'cardinality' min=INT '..' max=Entries;
 
 Entries: INT | '*';
-
-Name: STRING;
 
 Link: URL;
 
