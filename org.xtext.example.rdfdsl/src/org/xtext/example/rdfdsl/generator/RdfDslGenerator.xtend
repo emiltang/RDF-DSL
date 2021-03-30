@@ -8,6 +8,7 @@ import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.xtext.example.rdfdsl.rdfDsl.Model
+import org.xtext.example.rdfdsl.rdfDsl.Namespace
 
 /**
  * Generates code from your model files on save.
@@ -19,15 +20,31 @@ class RdfDslGenerator extends AbstractGenerator {
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val model = resource.allContents.filter(Model).next
 
-		fsa.generateFile('greetings.py', model.generate)
+		fsa.generateFile('model.py', model.generate)
 	}
 
-	def String generate(Model model) {
+	def dispatch String generate(Model model) {
 		'''
-		import rdflib
-		m
-		
+			import rdflib as rdf		
+			RDF  = rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+			RDFS = rdf.Namespace('http://www.w3.org/2000/01/rdf-schema#')
+			OWL  = rdf.Namespace('http://www.w3.org/2002/07/owl#')
+			XSD  = rdf.Namespace('http://www.w3.org/2001/XMLSchema#')
+			
+			g = Graph()
+			g.bind('rdf' , RDF)
+			g.bind('rdfs', RDFS)
+			g.bind('owl' , OWL)
+			g.bind('xsd' , XSD)
+			«FOR n : model.namespaces»
+				«n.generate»
+			«ENDFOR»
 		'''
 	}
 
+	def dispatch String generate(Namespace ns) {
+		'''
+			g.bind('«ns.name»', rdf.Namespace(«ns.link»))
+		'''
+	}
 }

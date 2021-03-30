@@ -2,7 +2,7 @@ grammar org.xtext.example.rdfdsl.RdfDsl with org.eclipse.xtext.common.Terminals
 
 generate rdfDsl "http://www.xtext.org/example/rdfdsl/RdfDsl"
 
-Model: 'model' namespace+=Namespace+;
+Model: 'model' namespaces+=Namespace+;
 
 Namespace: 'namespace' name=ID link=Link (class+=Class)*;
 
