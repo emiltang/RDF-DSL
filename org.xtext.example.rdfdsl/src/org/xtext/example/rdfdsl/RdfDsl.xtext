@@ -8,10 +8,10 @@ Model:
 Namespace:
 	'namespace' name=ID link=Link (classes+=Class)*;
 
-Class returns Klass:
+Class returns _Class:
 	'class' name=ID (':' superClass=ID)? (properties+=Property)*;
 
-Property returns Prop:
+Property returns _Property:
 	'property' name=ID type=(ObjectType | SimpleType) (cardinality=Cardinality)?; // default card is 0..*
 
 Cardinality:

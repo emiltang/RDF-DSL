@@ -9,13 +9,14 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.xtext.example.rdfdsl.rdfDsl.Model
 import org.xtext.example.rdfdsl.rdfDsl.Namespace
-import org.xtext.example.rdfdsl.rdfDsl.Klass
-import org.xtext.example.rdfdsl.rdfDsl.Prop
+import org.xtext.example.rdfdsl.rdfDsl._Class
+import org.xtext.example.rdfdsl.rdfDsl._Property
 import org.xtext.example.rdfdsl.rdfDsl.Cardinality
 import org.xtext.example.rdfdsl.rdfDsl._Float
 import org.xtext.example.rdfdsl.rdfDsl._Integer
 import org.xtext.example.rdfdsl.rdfDsl._String
 import org.xtext.example.rdfdsl.rdfDsl.Type
+import org.xtext.example.rdfdsl.rdfDsl.ClassRef
 
 /**
  * Generates code from your model files on save.
@@ -26,7 +27,6 @@ class RdfDslGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val model = resource.allContents.filter(Model).next
-
 		fsa.generateFile('model.py', model.generate)
 	}
 
@@ -42,53 +42,59 @@ class RdfDslGenerator extends AbstractGenerator {
 		g.bind('rdfs', RDFS)
 		g.bind('owl', OWL)
 		g.bind('xsd', XSD)
-		«FOR n : model.namespaces»
-			«n.generate»
+		«FOR namespace : model.namespaces»
+			«namespace.generate»
 		«ENDFOR»
 		
 		print(g.serialize(format="turtle").decode("utf-8"))
 	'''
 
-	def dispatch String generate(Namespace ns) '''
-		ns = rdf.Namespace(«ns.link»)
-		g.bind('«ns.name»', ns)
-		«FOR n : ns.classes»
-			«n.generate»
+	def dispatch String generate(Namespace namespace) '''
+		ns = rdf.Namespace(«namespace.link»)
+		g.bind('«namespace.name»', ns)
+		«FOR _class : namespace.classes»
+			«_class.generate»
 		«ENDFOR»
 	'''
 
-	def dispatch String generate(Klass klass) '''
-		«IF klass.superClass === null »
+	def dispatch String generate(_Class _class) '''
+		«IF _class.superClass === null»
 			parent = OWL.Class
+			_type = RDF.type
 		«ELSE»
-			parent = ns['«klass.superClass»']
+			parent = ns['«_class.superClass»']
+			_type = RDFS.subClassOf
 		«ENDIF»		
-		_class = ns['«klass.name»']
-		g.add((_class,«IF klass.superClass === null»RDF.type«ELSE»RDFS.subClassOf«ENDIF», parent))
-		«FOR p : klass.properties»
-			«p.generate»
+		_class = ns['«_class.name»']
+		g.add((_class, _type, parent))
+		«FOR property : _class.properties»
+			«property.generate»
 		«ENDFOR»
 	'''
 
 	// TODO add DataType
-	def dispatch String generate(Prop prop) '''
-		entity = ns['«prop.name»']
-		g.add((entity, RDF.type, OWL.ObjectProperty))
-		g.add((entity, RDFS.domain, _class))
-		g.add((entity, RDFS.range, ns['«prop.type»']))
-		
+	def dispatch String generate(_Property property) '''
+		prop = ns['«property.name»']
+		«IF property.type instanceof ClassRef»
+			g.add((prop, RDF.type, OWL.ObjectProperty))
+		«ELSE»
+			g.add((prop, RDF.type, OWL.DataProperty))
+		«ENDIF»
+		g.add((prop, RDFS.domain, _class))
+		g.add((prop, RDFS.range, «property.type.generate»))
 	'''
 
 	// TODO 
-	def dispatch String generate(Cardinality card) '''
+	def dispatch String generate(Cardinality cardinality) '''
 		
 	'''
 
-	def dispatch String generate(Type type) {
-		switch type {
-			case _Float: "XSD.float"
-			case _Integer: "XSD.integer"
-			case _String: "XSD.string"
-		}
-	}
+	def dispatch String generate(_Float type) '''XSD.float'''
+
+	def dispatch String generate(_Integer type) '''XSD.integer'''
+
+	def dispatch String generate(_String type) '''XSD.string'''
+
+	def dispatch String generate(ClassRef type) '''ns['«type.id»']'''
+
 }
