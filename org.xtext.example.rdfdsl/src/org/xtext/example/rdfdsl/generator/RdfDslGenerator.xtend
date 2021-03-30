@@ -10,6 +10,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.xtext.example.rdfdsl.rdfDsl.Model
 import org.xtext.example.rdfdsl.rdfDsl.Namespace
 import org.xtext.example.rdfdsl.rdfDsl.Klass
+import org.xtext.example.rdfdsl.rdfDsl.Prop
 
 /**
  * Generates code from your model files on save.
@@ -57,8 +58,18 @@ class RdfDslGenerator extends AbstractGenerator {
 		«ELSE»
 			parent = ns['«klass.superClass»']
 		«ENDIF»		
-		entity = ns['«klass.name»']
-		g.add((entity, RDFS.subClassOf, parent))
+		_class = ns['«klass.name»']
+		g.add((_class,«IF klass.superClass === null»RDF.type«ELSE»RDFS.subClassOf«ENDIF», parent))
+		«FOR p : klass.properties»
+		«p.generate»
+		«ENDFOR»
+	'''
+
+	def dispatch String generate(Prop prop) '''
+		entity = ns['«prop.name»']
+		g.add((entity,RDF.type, OWL.ObjectProperty))
+		g.add((entity,RDFS.domain, _class))
+		g.add((entity,RDFS.range,ns['«prop.type»']))
 	'''
 
 }

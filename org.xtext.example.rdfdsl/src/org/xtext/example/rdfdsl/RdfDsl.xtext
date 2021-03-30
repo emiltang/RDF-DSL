@@ -4,13 +4,11 @@ generate rdfDsl "http://www.xtext.org/example/rdfdsl/RdfDsl"
 
 Model: 'model' namespaces+=Namespace+;
 
-Namespace: 'namespace' name=ID link=Link (classes+=Klass)*;
+Namespace: 'namespace' name=ID link=Link (classes+=Class)*;
 
-Klass: 'class' name=ID (':' superClass=ID)? (property+=Property)*;
+Class returns Klass: 'class' name=ID (':' superClass=ID)? (properties+=Property)*;
 
-Property: 'property' name=ID type=Type (cardinality=Cardinality)?; //default card is 0..*
-
-Type: value=ID;
+Property returns Prop: 'property' name=ID type=ID (cardinality=Cardinality)?; //default card is 0..*
 
 Cardinality: 'cardinality' min=INT '..' max=Entries;
 
