@@ -15,4 +15,3 @@ Require-Bundle: org.xtext.example.rdfdsl.ui,
  org.eclipse.xtext.ui.testing,
  org.eclipse.ui.workbench;resolution:=optional
 Bundle-RequiredExecutionEnvironment: JavaSE-11
-Export-Package: org.xtext.example.rdfdsl.ui.tests;x-internal=true
