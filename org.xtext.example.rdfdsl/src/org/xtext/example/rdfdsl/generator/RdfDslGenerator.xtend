@@ -26,6 +26,7 @@ class RdfDslGenerator extends AbstractGenerator {
 		'''
 		import rdflib
 		m
+		
 		'''
 	}
 
