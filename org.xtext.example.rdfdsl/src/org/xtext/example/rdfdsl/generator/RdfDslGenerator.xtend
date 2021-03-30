@@ -11,6 +11,11 @@ import org.xtext.example.rdfdsl.rdfDsl.Model
 import org.xtext.example.rdfdsl.rdfDsl.Namespace
 import org.xtext.example.rdfdsl.rdfDsl.Klass
 import org.xtext.example.rdfdsl.rdfDsl.Prop
+import org.xtext.example.rdfdsl.rdfDsl.Cardinality
+import org.xtext.example.rdfdsl.rdfDsl._Float
+import org.xtext.example.rdfdsl.rdfDsl._Integer
+import org.xtext.example.rdfdsl.rdfDsl._String
+import org.xtext.example.rdfdsl.rdfDsl.Type
 
 /**
  * Generates code from your model files on save.
@@ -33,10 +38,10 @@ class RdfDslGenerator extends AbstractGenerator {
 		XSD  = rdf.Namespace('http://www.w3.org/2001/XMLSchema#')
 		
 		g = rdf.Graph()
-		g.bind('rdf' , RDF)
+		g.bind('rdf', RDF)
 		g.bind('rdfs', RDFS)
-		g.bind('owl' , OWL)
-		g.bind('xsd' , XSD)
+		g.bind('owl', OWL)
+		g.bind('xsd', XSD)
 		«FOR n : model.namespaces»
 			«n.generate»
 		«ENDFOR»
@@ -61,15 +66,29 @@ class RdfDslGenerator extends AbstractGenerator {
 		_class = ns['«klass.name»']
 		g.add((_class,«IF klass.superClass === null»RDF.type«ELSE»RDFS.subClassOf«ENDIF», parent))
 		«FOR p : klass.properties»
-		«p.generate»
+			«p.generate»
 		«ENDFOR»
 	'''
 
+	// TODO add DataType
 	def dispatch String generate(Prop prop) '''
 		entity = ns['«prop.name»']
-		g.add((entity,RDF.type, OWL.ObjectProperty))
-		g.add((entity,RDFS.domain, _class))
-		g.add((entity,RDFS.range,ns['«prop.type»']))
+		g.add((entity, RDF.type, OWL.ObjectProperty))
+		g.add((entity, RDFS.domain, _class))
+		g.add((entity, RDFS.range, ns['«prop.type»']))
+		
 	'''
 
+	// TODO 
+	def dispatch String generate(Cardinality card) '''
+		
+	'''
+
+	def dispatch String generate(Type type) {
+		switch type {
+			case _Float: "XSD.float"
+			case _Integer: "XSD.integer"
+			case _String: "XSD.string"
+		}
+	}
 }

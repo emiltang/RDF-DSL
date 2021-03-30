@@ -2,18 +2,31 @@ grammar org.xtext.example.rdfdsl.RdfDsl with org.eclipse.xtext.common.Terminals
 
 generate rdfDsl "http://www.xtext.org/example/rdfdsl/RdfDsl"
 
-Model: 'model' namespaces+=Namespace+;
+Model:
+	'model' namespaces+=Namespace+;
 
-Namespace: 'namespace' name=ID link=Link (classes+=Class)*;
+Namespace:
+	'namespace' name=ID link=Link (classes+=Class)*;
 
-Class returns Klass: 'class' name=ID (':' superClass=ID)? (properties+=Property)*;
+Class returns Klass:
+	'class' name=ID (':' superClass=ID)? (properties+=Property)*;
 
-Property returns Prop: 'property' name=ID type=ID (cardinality=Cardinality)?; //default card is 0..*
+Property returns Prop:
+	'property' name=ID type=(ObjectType | SimpleType) (cardinality=Cardinality)?; // default card is 0..*
 
-Cardinality: 'cardinality' min=INT '..' max=Entries;
+Cardinality:
+	'cardinality' min=INT '..' max=Entries;
 
-Entries: INT | '*';
+ObjectType returns Type: {ClassRef} id=ID;
 
-Link: URL;
+SimpleType returns Type:
+	{_String} 'String' | {_Integer} 'Integer' | {_Float} 'Float';
 
-URL: STRING;
+Entries:
+	INT | '*';
+
+Link:
+	URL;
+
+URL:
+	STRING;
