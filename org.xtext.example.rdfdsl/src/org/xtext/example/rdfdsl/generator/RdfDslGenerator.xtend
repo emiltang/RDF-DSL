@@ -38,10 +38,10 @@ class RdfDslGenerator extends AbstractGenerator {
 		import rdflib as rdf
 		g = rdf.Graph()
 		g.parse("temp.ttl", format='turtle')
+		
 		«FOR dataNamespace : data.namespaces»
 			«dataNamespace.generate»
 		«ENDFOR»
-		
 		
 		g.serialize("temp.ttl", 'turtle')
 	'''
@@ -53,6 +53,7 @@ class RdfDslGenerator extends AbstractGenerator {
 			dns = rdf.Namespace("«dataNs.link.replace('"', '')+"#"»")
 		«ENDIF»
 		g.bind('«dataNs.name»', dns)
+		
 	'''
 
 	def dispatch String generate(From from) '''
