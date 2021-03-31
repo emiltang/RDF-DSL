@@ -15,7 +15,6 @@ import org.xtext.example.rdfdsl.rdfDsl.Cardinality
 import org.xtext.example.rdfdsl.rdfDsl._Float
 import org.xtext.example.rdfdsl.rdfDsl._Integer
 import org.xtext.example.rdfdsl.rdfDsl._String
-import org.xtext.example.rdfdsl.rdfDsl.Type
 import org.xtext.example.rdfdsl.rdfDsl.ClassRef
 import org.xtext.example.rdfdsl.rdfDsl.Data
 import org.xtext.example.rdfdsl.rdfDsl.Root

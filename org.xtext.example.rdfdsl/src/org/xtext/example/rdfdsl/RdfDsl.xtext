@@ -8,7 +8,19 @@ Model:
 	'model' namespaces+=Namespace+;
 	
 Data:
-	'data' namespaces+=DataNamespace+ (from=From)? (bindings+=Binding)*;
+	'data' namespaces+=DataNamespace+ (from=From)? (bindings+=Binding)* (propBind+=PropertyBinding)*;
+
+PropertyBinding:
+	name=ID ':' property+=DataProperty+
+;
+
+DataProperty:
+	prop=ID (value+=PropValue (',' value+=PropValue)*) //BUG: her kan man stadig lave en String mere med komma først
+;
+
+PropValue:
+	ID | STRING | INT
+;
 
 Binding:
 	varList+=Variable (',' varList+=Variable)* 'is' ID
