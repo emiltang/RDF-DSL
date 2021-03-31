@@ -30,14 +30,9 @@ import org.xtext.example.rdfdsl.rdfDsl.From
 class RdfDslGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		if (resource.allContents.filter(Root).next.model !== null) {
-			val model = resource.allContents.filter(Model).next
-			fsa.generateFile('model.py', model.generate)
-		}
-		if (resource.allContents.filter(Root).next.data !== null) {
-			val data = resource.allContents.filter(Data).next
-			fsa.generateFile('data.py', data.generate)
-		}
+		val root = resource.allContents.filter(Root).next
+		root.model !== null ? fsa.generateFile('model.py', root.model.generate)
+		root.data !== null ? fsa.generateFile('data.py', root.data.generate)
 	}
 
 	def dispatch String generate(Data data) '''
