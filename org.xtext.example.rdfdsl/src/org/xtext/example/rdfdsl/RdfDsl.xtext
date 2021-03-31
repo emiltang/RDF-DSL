@@ -27,7 +27,7 @@ PropValue:
 ;
 
 Binding:
-	varList+=Variable (',' varList+=Variable)* 'is' ID
+	varList+=Variable (',' varList+=Variable)* 'is' entity=ID
 ;
 
 Variable:
