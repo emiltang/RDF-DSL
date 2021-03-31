@@ -42,6 +42,7 @@ class RdfDslGenerator extends AbstractGenerator {
 		g.bind('rdfs', RDFS)
 		g.bind('owl', OWL)
 		g.bind('xsd', XSD)
+		
 		«FOR namespace : model.namespaces»
 			«namespace.generate»
 		«ENDFOR»
@@ -56,6 +57,7 @@ class RdfDslGenerator extends AbstractGenerator {
 			ns = rdf.Namespace("«namespace.link.replace('"', '')+"#"»")
 		«ENDIF»
 		g.bind('«namespace.name»', ns)
+		
 		«FOR _class : namespace.classes»
 			«_class.generate»
 		«ENDFOR»
@@ -71,6 +73,7 @@ class RdfDslGenerator extends AbstractGenerator {
 		«ENDIF»		
 		_class = ns['«_class.name»']
 		g.add((_class, _type, parent))
+		
 		«FOR property : _class.properties»
 			«property.generate»
 		«ENDFOR»
@@ -82,6 +85,7 @@ class RdfDslGenerator extends AbstractGenerator {
 		g.add((prop, RDF.type, prop_type))
 		g.add((prop, RDFS.domain, _class))
 		g.add((prop, RDFS.range, «property.type.generate»))
+		
 		«IF property.cardinality !== null»
 			«property.cardinality.generate»
 		«ENDIF»
@@ -101,6 +105,7 @@ class RdfDslGenerator extends AbstractGenerator {
 			g.add( (cardmax_entity, OWL.onProperty, prop) )
 			g.add( (cardmax_entity, OWL.maxCardinality, rdf.Literal(«cardinality.max», datatype=XSD.integer)) )
 		«ENDIF»
+		
 	'''
 
 	def dispatch String generate(_Float type) '''XSD.float'''
