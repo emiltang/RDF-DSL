@@ -8,7 +8,7 @@ Model:
 	'model' namespaces+=Namespace+;
 	
 Data:
-	'data' namespaces+=DataNamespace+ (from=From)? (bindings+=Binding)* (propBind+=PropertyBinding)*;
+	'data' namespaces+=DataNamespace+;
 
 PropertyBinding:
 	name=ID ':' property+=DataProperty+
@@ -43,7 +43,7 @@ Namespace:
 	'namespace' name=ID link=Link (classes+=Class)*;
 	
 DataNamespace:
-	'namespace' name=ID link=Link;
+	'namespace' name=ID link=Link (from=From)? (bindings+=Binding)* (propBind+=PropertyBinding)+;
 
 Class returns _Class:
 	'class' name=ID (':' superClass=ID)? (properties+=Property)*;

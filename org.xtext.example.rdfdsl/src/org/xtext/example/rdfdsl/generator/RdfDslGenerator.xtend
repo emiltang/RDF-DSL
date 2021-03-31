@@ -38,8 +38,8 @@ class RdfDslGenerator extends AbstractGenerator {
 		import rdflib as rdf
 		g = rdf.Graph()
 		g.parse("temp.ttl", format='turtle')
-		«FOR namespaceRef : data.namespaces»
-			«namespaceRef.generate»
+		«FOR dataNamespace : data.namespaces»
+			«dataNamespace.generate»
 		«ENDFOR»
 		
 		
