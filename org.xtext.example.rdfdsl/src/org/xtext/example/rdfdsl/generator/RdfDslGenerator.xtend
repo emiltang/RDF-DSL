@@ -50,7 +50,11 @@ class RdfDslGenerator extends AbstractGenerator {
 	'''
 
 	def dispatch String generate(Namespace namespace) '''
-		ns = rdf.Namespace(«namespace.link»)
+		«IF namespace.link.replace('"', '').endsWith('#')»		
+			ns = rdf.Namespace(«namespace.link»)
+		«ELSE»
+			ns = rdf.Namespace("«namespace.link.replace('"', '')+"#"»")
+		«ENDIF»
 		g.bind('«namespace.name»', ns)
 		«FOR _class : namespace.classes»
 			«_class.generate»
