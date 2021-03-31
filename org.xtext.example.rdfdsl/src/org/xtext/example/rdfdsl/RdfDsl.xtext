@@ -2,11 +2,24 @@ grammar org.xtext.example.rdfdsl.RdfDsl with org.eclipse.xtext.common.Terminals
 
 generate rdfDsl "http://www.xtext.org/example/rdfdsl/RdfDsl"
 
+Root: (model=Model)? (data=Data)? ;
+
 Model:
 	'model' namespaces+=Namespace+;
+	
+Data:
+	'data' namespaces+=DataNamespace+ from=From;
+
+From:
+	'from'  importedNs=Link ('[' listProp+=PropRef+ ']')?;
+
+PropRef: ID ','| ID;
 
 Namespace:
 	'namespace' name=ID link=Link (classes+=Class)*;
+	
+DataNamespace:
+	'namespace' name=ID link=Link;
 
 Class returns _Class:
 	'class' name=ID (':' superClass=ID)? (properties+=Property)*;

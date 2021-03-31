@@ -17,6 +17,10 @@ import org.xtext.example.rdfdsl.rdfDsl._Integer
 import org.xtext.example.rdfdsl.rdfDsl._String
 import org.xtext.example.rdfdsl.rdfDsl.Type
 import org.xtext.example.rdfdsl.rdfDsl.ClassRef
+import org.xtext.example.rdfdsl.rdfDsl.Data
+import org.xtext.example.rdfdsl.rdfDsl.Root
+import org.xtext.example.rdfdsl.rdfDsl.DataNamespace
+import org.xtext.example.rdfdsl.rdfDsl.From
 
 /**
  * Generates code from your model files on save.
@@ -26,9 +30,41 @@ import org.xtext.example.rdfdsl.rdfDsl.ClassRef
 class RdfDslGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		val model = resource.allContents.filter(Model).next
-		fsa.generateFile('model.py', model.generate)
+		if (resource.allContents.filter(Root).next.model !== null) {
+			val model = resource.allContents.filter(Model).next
+			fsa.generateFile('model.py', model.generate)
+		}
+		if (resource.allContents.filter(Root).next.data !== null) {
+			val data = resource.allContents.filter(Data).next
+			fsa.generateFile('data.py', data.generate)
+		}
 	}
+
+	def dispatch String generate(Data data) '''
+		import rdflib as rdf
+		g = rdf.Graph()
+		g.parse("temp.ttl", format='turtle')
+		«FOR namespaceRef : data.namespaces»
+			«namespaceRef.generate»
+		«ENDFOR»
+		
+		
+		g.serialize("temp.ttl", 'turtle')
+	'''
+
+	def dispatch String generate(DataNamespace dataNs) '''
+		«IF dataNs.link.replace('"', '').endsWith('#')»		
+			dns = rdf.Namespace(«dataNs.link»)
+		«ELSE»
+			dns = rdf.Namespace("«dataNs.link.replace('"', '')+"#"»")
+		«ENDIF»
+		g.bind('«dataNs.name»', dns)
+	'''
+
+	def dispatch String generate(From from) '''
+	«from.importedNs»
+	
+	'''
 
 	def dispatch String generate(Model model) '''
 		import rdflib as rdf		
@@ -48,6 +84,7 @@ class RdfDslGenerator extends AbstractGenerator {
 		«ENDFOR»
 		
 		print(g.serialize(format="turtle").decode("utf-8"))
+		g.serialize("temp.ttl", 'turtle')
 	'''
 
 	def dispatch String generate(Namespace namespace) '''
