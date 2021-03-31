@@ -72,7 +72,6 @@ class RdfDslGenerator extends AbstractGenerator {
 		«ENDFOR»
 	'''
 
-	// TODO add DataType
 	def dispatch String generate(_Property property) '''
 		prop = ns['«property.name»']
 		«IF property.type instanceof ClassRef»
@@ -82,11 +81,25 @@ class RdfDslGenerator extends AbstractGenerator {
 		«ENDIF»
 		g.add((prop, RDFS.domain, _class))
 		g.add((prop, RDFS.range, «property.type.generate»))
+		«IF property.cardinality !== null»
+			«property.cardinality.generate»
+		«ENDIF»
 	'''
 
-	// TODO 
 	def dispatch String generate(Cardinality cardinality) '''
+		cardmin_entity = ns['_%s_%s_cardmin' % (_class.split('#')[-1], prop.split('#')[-1])]
+		g.add( (_class, OWL.equivalentClass, cardmin_entity) )
+		g.add( (cardmin_entity, RDF.type, OWL.Restriction) )
+		g.add( (cardmin_entity, OWL.onProperty, prop) )
+		g.add( (cardmin_entity, OWL.minCardinality, rdf.Literal(«cardinality.min», datatype=XSD.integer)) )
 		
+		«IF cardinality.max != '*'»
+			cardmax_entity = ns['_%s_%s_cardmax' % (_class.split('#')[-1], prop.split('#')[-1])]
+			g.add( (_class, OWL.equivalentClass, cardmax_entity) )
+			g.add( (cardmax_entity, RDF.type, OWL.Restriction) )
+			g.add( (cardmax_entity, OWL.onProperty, prop) )
+			g.add( (cardmax_entity, OWL.maxCardinality, rdf.Literal(«cardinality.max», datatype=XSD.integer)) )
+		«ENDIF»
 	'''
 
 	def dispatch String generate(_Float type) '''XSD.float'''
