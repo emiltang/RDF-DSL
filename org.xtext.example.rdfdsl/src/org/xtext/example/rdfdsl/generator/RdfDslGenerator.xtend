@@ -56,8 +56,8 @@ class RdfDslGenerator extends AbstractGenerator {
 	'''
 
 	def dispatch String generate(From from) '''
-	«from.importedNs»
-	
+		«from.importedNs»
+		
 	'''
 
 	def dispatch String generate(Model model) '''

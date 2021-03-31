@@ -2,46 +2,43 @@ grammar org.xtext.example.rdfdsl.RdfDsl with org.eclipse.xtext.common.Terminals
 
 generate rdfDsl "http://www.xtext.org/example/rdfdsl/RdfDsl"
 
-Root: (model=Model)? (data=Data)? ;
+Root:
+	(model=Model)? (data=Data)?;
 
 Model:
 	'model' namespaces+=Namespace+;
-	
+
 Data:
 	'data' namespaces+=DataNamespace+;
 
 PropertyBinding:
-	name=ID ':' property+=DataProperty+
-;
+	name=ID ':' property+=DataProperty+;
 
 DataProperty:
-	prop=ID ((value+=PropValue (',' value+=PropValue)*) | sValue=SimpleValue   ) //TODO: skal nok laves lidt bedre
+	prop=ID ((value+=PropValue (',' value+=PropValue)*) | sValue=SimpleValue) // TODO: skal nok laves lidt bedre
 ;
 
 SimpleValue:
-	STRING | INT
-;
+	STRING | INT;
 
 PropValue:
-	ID
-;
+	ID;
 
 Binding:
-	varList+=Variable (',' varList+=Variable)* 'is' entity=ID
-;
+	varList+=Variable (',' varList+=Variable)* 'is' entity=ID;
 
 Variable:
-    var=ID    
-;
+	var=ID;
 
 From:
-	'from'  importedNs=Link ('[' listProp+=PropRef+ ']')?;
+	'from' importedNs=Link ('[' listProp+=PropRef+ ']')?;
 
-PropRef: ID ','| ID;
+PropRef:
+	ID ',' | ID;
 
 Namespace:
 	'namespace' name=ID link=Link (classes+=Class)*;
-	
+
 DataNamespace:
 	'namespace' name=ID link=Link (from=From)? (bindings+=Binding)* (propBind+=PropertyBinding)+;
 
@@ -54,7 +51,8 @@ Property returns _Property:
 Cardinality:
 	'cardinality' min=INT '..' max=Entries;
 
-ObjectType returns Type: {ClassRef} id=ID;
+ObjectType returns Type:
+	{ClassRef} id=ID;
 
 SimpleType returns Type:
 	{_String} 'String' | {_Integer} 'Integer' | {_Float} 'Float';
