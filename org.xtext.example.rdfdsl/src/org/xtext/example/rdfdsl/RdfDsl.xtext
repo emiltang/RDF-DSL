@@ -8,7 +8,15 @@ Model:
 	'model' namespaces+=Namespace+;
 	
 Data:
-	'data' namespaces+=DataNamespace+ from=From;
+	'data' namespaces+=DataNamespace+ (from=From)? (bindings+=Binding)*;
+
+Binding:
+	varList+=Variable (',' varList+=Variable)* 'is' ID
+;
+
+Variable:
+    var=ID    
+;
 
 From:
 	'from'  importedNs=Link ('[' listProp+=PropRef+ ']')?;
