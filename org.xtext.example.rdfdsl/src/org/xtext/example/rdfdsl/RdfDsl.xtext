@@ -15,11 +15,15 @@ PropertyBinding:
 ;
 
 DataProperty:
-	prop=ID (value+=PropValue (',' value+=PropValue)*) //BUG: her kan man stadig lave en String mere med komma først
+	prop=ID ((value+=PropValue (',' value+=PropValue)*) | sValue=SimpleValue   ) //BUG: her kan man stadig lave en String mere med komma først
+;
+
+SimpleValue:
+	STRING | INT
 ;
 
 PropValue:
-	ID | STRING | INT
+	ID
 ;
 
 Binding:
