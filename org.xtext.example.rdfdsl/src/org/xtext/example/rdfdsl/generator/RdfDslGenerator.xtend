@@ -78,11 +78,8 @@ class RdfDslGenerator extends AbstractGenerator {
 
 	def dispatch String generate(_Property property) '''
 		prop = ns['«property.name»']
-		«IF property.type instanceof ClassRef»
-			g.add((prop, RDF.type, OWL.ObjectProperty))
-		«ELSE»
-			g.add((prop, RDF.type, OWL.DataProperty))
-		«ENDIF»
+		prop_type = «IF property.type instanceof ClassRef»OWL.ObjectProperty«ELSE»OWL.DataProperty«ENDIF»
+		g.add((prop, RDF.type, prop_type))
 		g.add((prop, RDFS.domain, _class))
 		g.add((prop, RDFS.range, «property.type.generate»))
 		«IF property.cardinality !== null»
