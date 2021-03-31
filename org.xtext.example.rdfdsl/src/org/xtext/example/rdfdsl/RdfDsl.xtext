@@ -15,7 +15,7 @@ PropertyBinding:
 ;
 
 DataProperty:
-	prop=ID ((value+=PropValue (',' value+=PropValue)*) | sValue=SimpleValue   ) //BUG: her kan man stadig lave en String mere med komma først
+	prop=ID ((value+=PropValue (',' value+=PropValue)*) | sValue=SimpleValue   ) //TODO: skal nok laves lidt bedre
 ;
 
 SimpleValue:
