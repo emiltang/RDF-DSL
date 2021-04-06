@@ -106,6 +106,7 @@ class RdfDslGenerator extends AbstractGenerator {
 			«_var» = dns["«_var»"]
 			g.add( («_var», RDF.type, «binding.entity») )
 		«ENDFOR»
+		
 	'''
 
 	def dispatch String generate(Model model) '''
@@ -152,6 +153,8 @@ class RdfDslGenerator extends AbstractGenerator {
 		«ENDIF»		
 		_class = ns['«_class.name»']
 		g.add((_class, _type, parent))
+		
+		g.add((_class, RDF['label'], rdf.Literal('«_class.name»')))
 		
 		«FOR property : _class.properties»
 			«property.generate»
