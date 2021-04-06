@@ -44,20 +44,20 @@ class RdfDslGenerator extends AbstractGenerator {
 		OWL  = rdf.Namespace('http://www.w3.org/2002/07/owl#')
 		XSD  = rdf.Namespace('http://www.w3.org/2001/XMLSchema#')
 		g = rdf.Graph()
-		g.parse("temp.ttl", format='turtle')
+		g.parse('temp.ttl', format='turtle')
 		
 		«FOR dataNamespace : data.namespaces»
 			«dataNamespace.generate»
 		«ENDFOR»
 		
-		g.serialize("temp.ttl", 'turtle')
+		g.serialize('temp.ttl', 'turtle')
 	'''
 
 	def dispatch String generate(DataNamespace dataNs) '''
 		«IF dataNs.link.replace('"', '').endsWith('#')»		
 			dns = rdf.Namespace(«dataNs.link»)
 		«ELSE»
-			dns = rdf.Namespace("«dataNs.link.replace('"', '')+"#"»")
+			dns = rdf.Namespace('«dataNs.link.replace('"', '')+'#'»')
 		«ENDIF»
 		g.bind('«dataNs.name»', dns)
 		
@@ -67,44 +67,46 @@ class RdfDslGenerator extends AbstractGenerator {
 			«bind.generate»
 		«ENDFOR»
 		
-		«FOR pbind: dataNs.propBind»
+		«FOR pbind : dataNs.propBind»
 			«pbind.generate»
 		«ENDFOR»
-		
 	'''
-	
-	def dispatch String generate(PropertyBinding pbind)'''
+
+	def dispatch String generate(PropertyBinding pbind) '''
 		current = «pbind.name»
 		«FOR dprop : pbind.property»
 			«dprop.generate»
 		«ENDFOR»
 	'''
-	
-	def dispatch String generate(DataProperty dprop)'''
+
+	def dispatch String generate(DataProperty dprop) '''
 		«IF dprop.value.nullOrEmpty»
-			g.add( (current, «dprop.prop», rdf.Literal(«dprop.SValue»)) )
+			g.add( (current, «dprop.prop», rdf.Literal('«dprop.SValue»')) )
 		«ELSE»
 			«FOR _val : dprop.value»
 				g.add( (current, «dprop.prop», «_val») )
 			«ENDFOR»
 		«ENDIF»
+		
 	'''
 
 	def dispatch String generate(From from) '''
 		«IF from.importedNs.replace('"', '').endsWith('#')»		
-			ins = rdf.Namespace(«from.importedNs»)
+			ins = rdf.Namespace('«from.importedNs»')
 		«ELSE»
-			ins = rdf.Namespace("«from.importedNs.replace('"', '')+"#"»")
+			ins = rdf.Namespace('«from.importedNs.replace('"', '')+'#'»')
 		«ENDIF»
+		
 		«FOR prop : from.listProp»
 			«prop» = ins['«prop»']
 		«ENDFOR»
 	'''
-	
-	def dispatch String generate(Binding binding)'''
+
+	def dispatch String generate(Binding binding) '''
 		«FOR _var : binding.varList»
-			«_var» = dns["«_var»"]
+			«_var» = dns['«_var»']
 			g.add( («_var», RDF.type, «binding.entity») )
+			
 		«ENDFOR»
 		
 	'''
@@ -126,15 +128,15 @@ class RdfDslGenerator extends AbstractGenerator {
 			«namespace.generate»
 		«ENDFOR»
 		
-		print(g.serialize(format="turtle").decode("utf-8"))
-		g.serialize("temp.ttl", 'turtle')
+		print(g.serialize(format='turtle').decode('utf-8'))
+		g.serialize('temp.ttl', 'turtle')
 	'''
 
 	def dispatch String generate(Namespace namespace) '''
 		«IF namespace.link.replace('"', '').endsWith('#')»		
 			ns = rdf.Namespace(«namespace.link»)
 		«ELSE»
-			ns = rdf.Namespace("«namespace.link.replace('"', '')+"#"»")
+			ns = rdf.Namespace('«namespace.link.replace('"', '') + '#'»')
 		«ENDIF»
 		g.bind('«namespace.name»', ns)
 		
