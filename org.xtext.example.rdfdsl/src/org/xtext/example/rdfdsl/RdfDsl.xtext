@@ -15,26 +15,17 @@ PropertyBinding:
 	name=ID ':' property+=DataProperty+;
 
 DataProperty:
-	prop=ID ((value+=PropValue (',' value+=PropValue)*) | sValue=SimpleValue) // TODO: skal nok laves lidt bedre
+	prop=ID ((value+=ID (',' value+=ID)*) | sValue=SimpleValue) // TODO: skal nok laves lidt bedre
 ;
 
 SimpleValue:
-	STRING | INT;
-
-PropValue:
-	ID;
+	INT | STRING;
 
 Binding:
-	varList+=Variable (',' varList+=Variable)* 'is' entity=ID;
-
-Variable:
-	var=ID;
+	varList+=ID (',' varList+=ID)* 'is' entity=ID;
 
 From:
-	'from' importedNs=Link ('[' listProp+=PropRef+ ']')?;
-
-PropRef:
-	ID ',' | ID;
+	'from' importedNs=Link '[' listProp+=ID+ (',' listProp+=ID)*']';
 
 Namespace:
 	'namespace' name=ID link=Link (classes+=Class)*;

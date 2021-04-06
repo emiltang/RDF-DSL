@@ -20,6 +20,9 @@ import org.xtext.example.rdfdsl.rdfDsl.Data
 import org.xtext.example.rdfdsl.rdfDsl.Root
 import org.xtext.example.rdfdsl.rdfDsl.DataNamespace
 import org.xtext.example.rdfdsl.rdfDsl.From
+import org.xtext.example.rdfdsl.rdfDsl.Binding
+import org.xtext.example.rdfdsl.rdfDsl.PropertyBinding
+import org.xtext.example.rdfdsl.rdfDsl.DataProperty
 
 /**
  * Generates code from your model files on save.
@@ -36,6 +39,10 @@ class RdfDslGenerator extends AbstractGenerator {
 
 	def dispatch String generate(Data data) '''
 		import rdflib as rdf
+		RDF  = rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+		RDFS = rdf.Namespace('http://www.w3.org/2000/01/rdf-schema#')
+		OWL  = rdf.Namespace('http://www.w3.org/2002/07/owl#')
+		XSD  = rdf.Namespace('http://www.w3.org/2001/XMLSchema#')
 		g = rdf.Graph()
 		g.parse("temp.ttl", format='turtle')
 		
@@ -54,11 +61,51 @@ class RdfDslGenerator extends AbstractGenerator {
 		«ENDIF»
 		g.bind('«dataNs.name»', dns)
 		
+		«dataNs.from.generate»
+		
+		«FOR bind : dataNs.bindings»
+			«bind.generate»
+		«ENDFOR»
+		
+		«FOR pbind: dataNs.propBind»
+			«pbind.generate»
+		«ENDFOR»
+		
+	'''
+	
+	def dispatch String generate(PropertyBinding pbind)'''
+		current = «pbind.name»
+		«FOR dprop : pbind.property»
+			«dprop.generate»
+		«ENDFOR»
+	'''
+	
+	def dispatch String generate(DataProperty dprop)'''
+		«IF dprop.value.nullOrEmpty»
+			g.add( (current, «dprop.prop», rdf.Literal(«dprop.SValue»)) )
+		«ELSE»
+			«FOR _val : dprop.value»
+				g.add( (current, «dprop.prop», «_val») )
+			«ENDFOR»
+		«ENDIF»
 	'''
 
 	def dispatch String generate(From from) '''
-		«from.importedNs»
-		
+		«IF from.importedNs.replace('"', '').endsWith('#')»		
+			ins = rdf.Namespace(«from.importedNs»)
+		«ELSE»
+			ins = rdf.Namespace("«from.importedNs.replace('"', '')+"#"»")
+		«ENDIF»
+		«FOR prop : from.listProp»
+			«prop» = ins['«prop»']
+		«ENDFOR»
+	'''
+	
+	def dispatch String generate(Binding binding)'''
+		«FOR _var : binding.varList»
+			«_var» = dns["«_var»"]
+			g.add( («_var», RDF.type, «binding.entity») )
+		«ENDFOR»
 	'''
 
 	def dispatch String generate(Model model) '''
