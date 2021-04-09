@@ -18,6 +18,7 @@ import org.xtext.example.rdfdsl.rdfDsl._String
 import org.xtext.example.rdfdsl.rdfDsl.ClassRef
 import org.xtext.example.rdfdsl.rdfDsl.Data
 import org.xtext.example.rdfdsl.rdfDsl.Root
+import org.xtext.example.rdfdsl.rdfDsl.Query
 import org.xtext.example.rdfdsl.rdfDsl.DataNamespace
 import org.xtext.example.rdfdsl.rdfDsl.From
 import org.xtext.example.rdfdsl.rdfDsl.Binding
@@ -35,7 +36,12 @@ class RdfDslGenerator extends AbstractGenerator {
 		val root = resource.allContents.filter(Root).next
 		root.model !== null ? fsa.generateFile('model.py', root.model.generate)
 		root.data !== null ? fsa.generateFile('data.py', root.data.generate)
+		root.query !== null ? fsa.generateFile('query.py', root.query.generate)
 	}
+	
+	def dispatch String generate(Query query) '''
+		import rdflib as rdf
+	'''
 
 	def dispatch String generate(Data data) '''
 		import rdflib as rdf
@@ -191,7 +197,8 @@ class RdfDslGenerator extends AbstractGenerator {
 		«ENDIF»
 		
 	'''
-
+	
+	
 	def dispatch String generate(_Float type) '''XSD.float'''
 
 	def dispatch String generate(_Integer type) '''XSD.integer'''

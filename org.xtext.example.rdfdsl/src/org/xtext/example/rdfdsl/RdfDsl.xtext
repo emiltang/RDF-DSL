@@ -3,13 +3,33 @@ grammar org.xtext.example.rdfdsl.RdfDsl with org.eclipse.xtext.common.Terminals
 generate rdfDsl "http://www.xtext.org/example/rdfdsl/RdfDsl"
 
 Root:
-	(model=Model)? (data=Data)?;
+	(model=Model)? (data=Data)? (query=Query)?;
 
 Model:
 	'model' namespaces+=Namespace+;
 
 Data:
 	'data' namespaces+=DataNamespace+;
+	
+Query:
+	'query'	select+=Select+
+;
+
+Select:
+	'SELECT' selectList+=ID (',' selectList+=ID)* where=Where
+;
+
+Where:
+	'WHERE' constraintList+=Triple+
+;
+
+Triple:
+	subject=ID predicate=ID object=QueryObject
+;
+
+QueryObject:
+	ID | STRING
+;
 
 PropertyBinding:
 	name=ID ':' property+=DataProperty+;
