@@ -15,6 +15,7 @@ import org.xtext.example.rdfdsl.rdfDsl.Cardinality
 import org.xtext.example.rdfdsl.rdfDsl._Float
 import org.xtext.example.rdfdsl.rdfDsl._Integer
 import org.xtext.example.rdfdsl.rdfDsl._String
+import org.xtext.example.rdfdsl.rdfDsl._Boolean
 import org.xtext.example.rdfdsl.rdfDsl.ClassRef
 import org.xtext.example.rdfdsl.rdfDsl.Data
 import org.xtext.example.rdfdsl.rdfDsl.Root
@@ -244,6 +245,8 @@ class RdfDslGenerator extends AbstractGenerator {
 	def dispatch String generate(_Integer type) '''XSD.integer'''
 
 	def dispatch String generate(_String type) '''XSD.string'''
+	
+	def dispatch String generate(_Boolean type) '''XSD.boolean'''
 
 	def dispatch String generate(ClassRef type) '''ns['«type.id»']'''
 

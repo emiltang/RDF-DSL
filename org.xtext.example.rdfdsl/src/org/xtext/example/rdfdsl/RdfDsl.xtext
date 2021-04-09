@@ -70,7 +70,7 @@ ObjectType returns Type:
 	{ClassRef} id=ID;
 
 SimpleType returns Type:
-	{_String} 'String' | {_Integer} 'Integer' | {_Float} 'Float';
+	{_String} 'String' | {_Integer} 'Integer' | {_Float} 'Float' | {_Boolean} 'Boolean';
 
 Entries:
 	INT | '*';
