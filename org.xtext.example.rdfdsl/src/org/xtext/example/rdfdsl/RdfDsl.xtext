@@ -32,7 +32,11 @@ Predicate:
 ;
 
 QueryObject:
-	{QueryID} id=ID | {QueryLiteral} id=STRING
+	{QueryID} id=ID | {QueryLiteral} id=STRING | {QueryBool} id=BOOL
+;
+
+BOOL:
+	'True'|'False'
 ;
 
 PropertyBinding:
@@ -43,7 +47,7 @@ DataProperty:
 ;
 
 SimpleValue:
-	INT | STRING;
+	INT | STRING | BOOL;
 
 Binding:
 	varList+=ID (',' varList+=ID)* 'is' entity=ID;

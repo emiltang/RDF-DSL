@@ -32,6 +32,7 @@ import org.xtext.example.rdfdsl.rdfDsl.Predicate
 import org.xtext.example.rdfdsl.rdfDsl.QueryObject
 import org.xtext.example.rdfdsl.rdfDsl.QueryID
 import org.xtext.example.rdfdsl.rdfDsl.QueryLiteral
+import org.xtext.example.rdfdsl.rdfDsl.QueryBool
 
 /**
  * Generates code from your model files on save.
@@ -58,8 +59,10 @@ class RdfDslGenerator extends AbstractGenerator {
 		g.parse("temp.ttl", format="turtle")
 		for q in query:
 		    k = g.query(q)
+		    print("Query Result:")
 		    for l in k:
 		        print(l)
+		    print()
 	'''
 
 	def dispatch String generate(Select select) '''
@@ -84,6 +87,8 @@ class RdfDslGenerator extends AbstractGenerator {
 	def dispatch String generate(QueryID queryID) '''?«queryID.id»'''
 
 	def dispatch String generate(QueryLiteral queryLit) '''"«queryLit.id»"'''
+	
+	def dispatch String generate(QueryBool queryBool) '''«queryBool.id»'''
 
 	def dispatch String generate(Predicate pred) '''«pred.namespace»:«pred.property»'''
 
