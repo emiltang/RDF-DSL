@@ -32,7 +32,7 @@ Predicate:
 ;
 
 QueryObject:
-	ID | STRING
+	{QueryID} id=ID | {QueryLiteral} id=STRING
 ;
 
 PropertyBinding:

@@ -28,6 +28,9 @@ import org.xtext.example.rdfdsl.rdfDsl.Select
 import org.xtext.example.rdfdsl.rdfDsl.Where
 import org.xtext.example.rdfdsl.rdfDsl.Triple
 import org.xtext.example.rdfdsl.rdfDsl.Predicate
+import org.xtext.example.rdfdsl.rdfDsl.QueryObject
+import org.xtext.example.rdfdsl.rdfDsl.QueryID
+import org.xtext.example.rdfdsl.rdfDsl.QueryLiteral
 
 /**
  * Generates code from your model files on save.
@@ -42,38 +45,44 @@ class RdfDslGenerator extends AbstractGenerator {
 		root.data !== null ? fsa.generateFile('data.py', root.data.generate)
 		root.query !== null ? fsa.generateFile('query.py', root.query.generate)
 	}
-	
+
 	def dispatch String generate(Query query) '''
 		import rdflib as rdf
 		«FOR select : query.select»
 			«select.generate»
 		«ENDFOR»
+		g = rdf.Graph()
+		g.parse("temp.ttl", format="turtle")
+		k = g.query(query)
+		for l in k:
+		    print(l)
 	'''
-	
+
 	def dispatch String generate(Select select) '''
 		query = «"'''"»
-		SELECT «FOR single : select.selectList» ?«single»
-			«ENDFOR»
+		SELECT«FOR single : select.selectList» ?«single»«ENDFOR»
 		«select.where.generate»
 		«"'''"»
 	'''
-	
+
 	def dispatch String generate(Where where) '''
 		WHERE {
-		«FOR trip : where.constraintList»
-			«trip.generate»
-		«ENDFOR»
+			«FOR trip : where.constraintList»
+				«trip.generate»
+			«ENDFOR»
 		}
 	'''
-	
+
 	def dispatch String generate(Triple trip) '''
-		?«trip.subject» «trip.predicate.generate» «trip.object»
+		?«trip.subject» «trip.predicate.generate» «trip.object.generate» .
 	'''
-	
-	def dispatch String generate(Predicate pred) '''
-		«pred.namespace»:«pred.property»
-	'''
-	
+
+	def dispatch String generate(QueryID queryID) '''?«queryID.id»'''
+
+	def dispatch String generate(QueryLiteral queryLit) '''"«queryLit.id»"'''
+
+	def dispatch String generate(Predicate pred) '''«pred.namespace»:«pred.property»'''
+
 	def dispatch String generate(Data data) '''
 		import rdflib as rdf
 		RDF  = rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
@@ -104,20 +113,20 @@ class RdfDslGenerator extends AbstractGenerator {
 			«bind.generate»
 		«ENDFOR»
 		
-		«FOR pbind: dataNs.propBind»
+		«FOR pbind : dataNs.propBind»
 			«pbind.generate»
 		«ENDFOR»
 		
 	'''
-	
-	def dispatch String generate(PropertyBinding pbind)'''
+
+	def dispatch String generate(PropertyBinding pbind) '''
 		current = «pbind.name»
 		«FOR dprop : pbind.property»
 			«dprop.generate»
 		«ENDFOR»
 	'''
-	
-	def dispatch String generate(DataProperty dprop)'''
+
+	def dispatch String generate(DataProperty dprop) '''
 		«IF dprop.value.nullOrEmpty»
 			g.add( (current, «dprop.prop», rdf.Literal(«dprop.SValue»)) )
 		«ELSE»
@@ -137,8 +146,8 @@ class RdfDslGenerator extends AbstractGenerator {
 			«prop» = ins['«prop»']
 		«ENDFOR»
 	'''
-	
-	def dispatch String generate(Binding binding)'''
+
+	def dispatch String generate(Binding binding) '''
 		«FOR _var : binding.varList»
 			«_var» = dns["«_var»"]
 			g.add( («_var», RDF.type, «binding.entity») )
@@ -226,8 +235,7 @@ class RdfDslGenerator extends AbstractGenerator {
 		«ENDIF»
 		
 	'''
-	
-	
+
 	def dispatch String generate(_Float type) '''XSD.float'''
 
 	def dispatch String generate(_Integer type) '''XSD.integer'''
