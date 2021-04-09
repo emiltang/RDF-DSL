@@ -50,10 +50,10 @@ class RdfDslGenerator extends AbstractGenerator {
 
 	def dispatch String generate(Query query) '''
 		import rdflib as rdf
-		query =[
-		«FOR select : query.select»
-			«select.generate»,
-		«ENDFOR»
+		query = [
+			«FOR select : query.select»
+				«select.generate»
+			«ENDFOR»
 		]
 		g = rdf.Graph()
 		g.parse("temp.ttl", format="turtle")
@@ -67,9 +67,9 @@ class RdfDslGenerator extends AbstractGenerator {
 
 	def dispatch String generate(Select select) '''
 		«"'''"»
-		SELECT«FOR single : select.selectList» ?«single»«ENDFOR»
-		«select.where.generate»
-		«"'''"»
+			SELECT«FOR single : select.selectList» ?«single»«ENDFOR»
+			«select.where.generate»
+		«"'''"»,
 	'''
 
 	def dispatch String generate(Where where) '''
@@ -250,7 +250,7 @@ class RdfDslGenerator extends AbstractGenerator {
 	def dispatch String generate(_Integer type) '''XSD.integer'''
 
 	def dispatch String generate(_String type) '''XSD.string'''
-	
+
 	def dispatch String generate(_Boolean type) '''XSD.boolean'''
 
 	def dispatch String generate(ClassRef type) '''ns['«type.id»']'''
