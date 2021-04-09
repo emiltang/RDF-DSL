@@ -24,7 +24,11 @@ Where:
 ;
 
 Triple:
-	subject=ID predicate=ID object=QueryObject
+	subject=ID predicate=Predicate object=QueryObject
+;
+
+Predicate:
+	namespace=ID ':' property=ID
 ;
 
 QueryObject:

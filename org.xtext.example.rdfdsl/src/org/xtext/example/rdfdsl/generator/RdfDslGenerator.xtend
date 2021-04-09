@@ -24,6 +24,10 @@ import org.xtext.example.rdfdsl.rdfDsl.From
 import org.xtext.example.rdfdsl.rdfDsl.Binding
 import org.xtext.example.rdfdsl.rdfDsl.PropertyBinding
 import org.xtext.example.rdfdsl.rdfDsl.DataProperty
+import org.xtext.example.rdfdsl.rdfDsl.Select
+import org.xtext.example.rdfdsl.rdfDsl.Where
+import org.xtext.example.rdfdsl.rdfDsl.Triple
+import org.xtext.example.rdfdsl.rdfDsl.Predicate
 
 /**
  * Generates code from your model files on save.
@@ -41,8 +45,35 @@ class RdfDslGenerator extends AbstractGenerator {
 	
 	def dispatch String generate(Query query) '''
 		import rdflib as rdf
+		«FOR select : query.select»
+			«select.generate»
+		«ENDFOR»
 	'''
-
+	
+	def dispatch String generate(Select select) '''
+		query = «"'''"»
+		SELECT «FOR single : select.selectList» ?«single»
+			«ENDFOR»
+		«select.where.generate»
+		«"'''"»
+	'''
+	
+	def dispatch String generate(Where where) '''
+		WHERE {
+		«FOR trip : where.constraintList»
+			«trip.generate»
+		«ENDFOR»
+		}
+	'''
+	
+	def dispatch String generate(Triple trip) '''
+		?«trip.subject» «trip.predicate.generate» «trip.object»
+	'''
+	
+	def dispatch String generate(Predicate pred) '''
+		«pred.namespace»:«pred.property»
+	'''
+	
 	def dispatch String generate(Data data) '''
 		import rdflib as rdf
 		RDF  = rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
