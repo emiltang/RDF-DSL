@@ -12,7 +12,15 @@ Data:
 	'data' namespaces+=DataNamespace+;
 	
 Query:
-	'query'	select+=Select+
+	'query' namespaces+=QueryNamespace+ instances+=QueryInstance+
+;
+
+QueryNamespace:
+	'from' id=ID url=STRING
+;
+
+QueryInstance:
+	id=ID (params+=ID)* select=Select
 ;
 
 Select:

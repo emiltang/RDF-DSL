@@ -33,6 +33,8 @@ import org.xtext.example.rdfdsl.rdfDsl.QueryObject
 import org.xtext.example.rdfdsl.rdfDsl.QueryID
 import org.xtext.example.rdfdsl.rdfDsl.QueryLiteral
 import org.xtext.example.rdfdsl.rdfDsl.QueryBool
+import org.xtext.example.rdfdsl.rdfDsl.QueryInstance
+import org.xtext.example.rdfdsl.rdfDsl.QueryNamespace
 
 /**
  * Generates code from your model files on save.
@@ -50,26 +52,38 @@ class RdfDslGenerator extends AbstractGenerator {
 
 	def dispatch String generate(Query query) '''
 		import rdflib as rdf
-		query = [
-			«FOR select : query.select»
-				«select.generate»
-			«ENDFOR»
-		]
+		import rdflib.plugins.sparql as prep_queue
 		g = rdf.Graph()
 		g.parse("temp.ttl", format="turtle")
-		for q in query:
-		    k = g.query(q)
-		    print("Query Result:")
-		    for l in k:
-		        print(l)
-		    print()
+		prefixlist = [«FOR prefix : query.namespaces SEPARATOR ', '»«prefix.generate»«ENDFOR»]
+		
+		«FOR instance : query.instances»
+			«instance.generate»
+		«ENDFOR»
+		
+		«FOR instance : query.instances»
+		for res in «instance.id»(«FOR arg : instance.params SEPARATOR ', '»"«arg»"«ENDFOR»):
+			print(res)
+		«ENDFOR»
+	'''
+
+	def dispatch String generate(QueryNamespace namespace) '''"prefix «namespace.id»: <«namespace.url»>"'''
+
+	def dispatch String generate(QueryInstance inst) '''
+		def «inst.id»(«FOR arg : inst.params SEPARATOR ', '»«arg»«ENDFOR»):
+			ps = "".join(prefixlist)
+			q = prep_queue.prepareQuery(ps +
+				«inst.select.generate»
+			)
+			return g.query(q, initBindings={«FOR arg : inst.params SEPARATOR ', '»'«arg»':rdf.Literal(«arg»)«ENDFOR»})
+		
 	'''
 
 	def dispatch String generate(Select select) '''
 		«"'''"»
 			SELECT«FOR single : select.selectList» ?«single»«ENDFOR»
 			«select.where.generate»
-		«"'''"»,
+		«"'''"»
 	'''
 
 	def dispatch String generate(Where where) '''
@@ -87,7 +101,7 @@ class RdfDslGenerator extends AbstractGenerator {
 	def dispatch String generate(QueryID queryID) '''?«queryID.id»'''
 
 	def dispatch String generate(QueryLiteral queryLit) '''"«queryLit.id»"'''
-	
+
 	def dispatch String generate(QueryBool queryBool) '''«queryBool.id»'''
 
 	def dispatch String generate(Predicate pred) '''«pred.namespace»:«pred.property»'''
