@@ -3,23 +3,33 @@
  */
 package org.xtext.example.rdfdsl.validation
 
+import org.eclipse.xtext.validation.Check
+import org.xtext.example.rdfdsl.rdfDsl.QueryInstance
+import org.xtext.example.rdfdsl.rdfDsl.RdfDslPackage
 
 /**
  * This class contains custom validation rules. 
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class RdfDslValidator extends AbstractRdfDslValidator {
-	
-//	public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					RdfDslPackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
-	
+
+	public static String[] Python_Keywords = #["and", "as", "assert", "break", "class", "continue", "def", "del",
+		"elif", "else", "except", "False", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda",
+		"None", "nonlocal", "not", "or", "pass", "raise", "return", "True", "try", "while", "with", "yield"]
+
+	@Check
+	def idContainsKeyword(QueryInstance qins) {
+		if (Python_Keywords.contains(qins.id)){
+			error('Name cannot contain python keywords', RdfDslPackage.Literals.QUERY_INSTANCE__ID, "Keyword Error")
+		}
+	}
+	@Check
+	def paramsContainsKeyword(QueryInstance qins) {
+		for(param : qins.params){
+			if(Python_Keywords.contains(param)){
+				error('Parameters cannot contain python keywords. Error at: ' + param, RdfDslPackage.Literals.QUERY_INSTANCE__PARAMS, "Keyword Error")
+			}
+		}
+	}
 }
