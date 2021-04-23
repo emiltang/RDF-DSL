@@ -60,10 +60,12 @@ class RdfDslGenerator extends AbstractGenerator {
 			«instance.generate»
 		«ENDFOR»
 		
-		«FOR instance : query.instances»
-		for res in «instance.id»(«FOR arg : instance.params SEPARATOR ', '»"«arg»"«ENDFOR»):
-			print(res)
-		«ENDFOR»
+		
+		if __name__ == "__main__":
+			«FOR instance : query.instances»
+				for res in «instance.id»(«FOR arg : instance.params SEPARATOR ', '»"«arg»"«ENDFOR»):
+					print(res)
+			«ENDFOR»
 	'''
 
 	def dispatch String generate(QueryNamespace namespace) '''"prefix «namespace.id»: <«namespace.url»>"'''
