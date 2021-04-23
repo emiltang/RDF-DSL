@@ -29,7 +29,6 @@ import org.xtext.example.rdfdsl.rdfDsl.Select
 import org.xtext.example.rdfdsl.rdfDsl.Where
 import org.xtext.example.rdfdsl.rdfDsl.Triple
 import org.xtext.example.rdfdsl.rdfDsl.Predicate
-import org.xtext.example.rdfdsl.rdfDsl.QueryObject
 import org.xtext.example.rdfdsl.rdfDsl.QueryID
 import org.xtext.example.rdfdsl.rdfDsl.QueryLiteral
 import org.xtext.example.rdfdsl.rdfDsl.QueryBool
