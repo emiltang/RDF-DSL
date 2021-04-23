@@ -29,7 +29,6 @@ import org.xtext.example.rdfdsl.rdfDsl.Select
 import org.xtext.example.rdfdsl.rdfDsl.Where
 import org.xtext.example.rdfdsl.rdfDsl.Triple
 import org.xtext.example.rdfdsl.rdfDsl.Predicate
-import org.xtext.example.rdfdsl.rdfDsl.QueryObject
 import org.xtext.example.rdfdsl.rdfDsl.QueryID
 import org.xtext.example.rdfdsl.rdfDsl.QueryLiteral
 import org.xtext.example.rdfdsl.rdfDsl.QueryBool
@@ -179,7 +178,7 @@ class RdfDslGenerator extends AbstractGenerator {
 		«ENDFOR»
 		
 	'''
-	
+
 	def dispatch String generate(From from) '''
 		«IF from.importedNs.replace('"', '').endsWith('#')»		
 			ins = rdf.Namespace(«from.importedNs»)
@@ -198,7 +197,7 @@ class RdfDslGenerator extends AbstractGenerator {
 		«ENDFOR»
 		
 	'''
-	
+
 	def dispatch String generate(PropertyBinding pbind) '''
 		current = «pbind.name»
 		«FOR dprop : pbind.property»
@@ -228,10 +227,11 @@ class RdfDslGenerator extends AbstractGenerator {
 			«instance.generate»
 		«ENDFOR»
 		
-		«FOR instance : query.instances»
-			for res in «instance.id»(«FOR arg : instance.params SEPARATOR ', '»"«arg»"«ENDFOR»):
-				print(res)
-		«ENDFOR»
+		if __name__ == "__main__":
+			«FOR instance : query.instances»
+				for res in «instance.id»(«FOR arg : instance.params SEPARATOR ', '»"«arg»"«ENDFOR»):
+					print(res)
+			«ENDFOR»
 	'''
 
 	def dispatch String generate(QueryNamespace namespace) '''"prefix «namespace.id»: <«namespace.url»>"'''
@@ -264,7 +264,7 @@ class RdfDslGenerator extends AbstractGenerator {
 	def dispatch String generate(Triple trip) '''
 		?«trip.subject» «trip.predicate.generate» «trip.object.generate» .
 	'''
-	
+
 	def dispatch String generate(Predicate pred) '''«pred.namespace»:«pred.property»'''
 
 	def dispatch String generate(QueryID queryID) '''?«queryID.id»'''
@@ -272,16 +272,5 @@ class RdfDslGenerator extends AbstractGenerator {
 	def dispatch String generate(QueryLiteral queryLit) '''"«queryLit.id»"'''
 
 	def dispatch String generate(QueryBool queryBool) '''«queryBool.id»'''
-
-	
-
-	
-	
-	
-	
-	
-
-
-	
 
 }
