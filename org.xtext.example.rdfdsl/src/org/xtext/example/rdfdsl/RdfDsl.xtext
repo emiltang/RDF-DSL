@@ -2,51 +2,58 @@ grammar org.xtext.example.rdfdsl.RdfDsl with org.eclipse.xtext.common.Terminals
 
 generate rdfDsl "http://www.xtext.org/example/rdfdsl/RdfDsl"
 
+
+//#################################################[GENERAL]#################################################
+
 Root:
 	(model=Model)? (data=Data)? (query=Query)?;
+
+Link:
+	URL;
+
+URL:
+	STRING;
+
+//##################################################[MODEL]##################################################
 
 Model:
 	'model' namespaces+=Namespace+;
 
+Namespace:
+	'namespace' name=ID link=Link (classes+=Class)*;
+
+Class returns _Class:
+	'class' name=ID (':' superClass=ID)? (properties+=Property)*;
+
+Property returns _Property:
+	'property' name=ID type=(ObjectType | SimpleType) (cardinality=Cardinality)?; // default card is 0..*
+
+ObjectType returns Type:
+	{ClassRef} id=ID;
+
+SimpleType returns Type:
+	{_String} 'String' | {_Integer} 'Integer' | {_Float} 'Float' | {_Boolean} 'Boolean';
+
+Cardinality:
+	'cardinality' min=INT '..' max=Entries;
+
+Entries:
+	INT | '*';
+	
+//##################################################[DATA]##################################################
+	
 Data:
 	'data' namespaces+=DataNamespace+;
+
+DataNamespace:
+	'namespace' name=ID link=Link (from=From)? (bindings+=Binding)* (propBind+=PropertyBinding)+;
+
+From:
+	'from' importedNs=Link '[' listProp+=ID+ (',' listProp+=ID)*']';
 	
-Query:
-	'query' namespaces+=QueryNamespace+ instances+=QueryInstance+
-;
-
-QueryNamespace:
-	'from' id=ID url=STRING
-;
-
-QueryInstance:
-	id=ID (params+=ID)* select=Select
-;
-
-Select:
-	'SELECT' selectList+=ID (',' selectList+=ID)* where=Where
-;
-
-Where:
-	'WHERE' constraintList+=Triple+
-;
-
-Triple:
-	subject=ID predicate=Predicate object=QueryObject
-;
-
-Predicate:
-	namespace=ID ':' property=ID
-;
-
-QueryObject:
-	{QueryID} id=ID | {QueryLiteral} id=STRING | {QueryBool} id=BOOL
-;
-
-BOOL:
-	'True'|'False'
-;
-
+Binding:
+	varList+=ID (',' varList+=ID)* 'is' entity=ID;
+	
 PropertyBinding:
 	name=ID ':' property+=DataProperty+;
 
@@ -57,38 +64,52 @@ DataProperty:
 SimpleValue:
 	INT | STRING | BOOL;
 
-Binding:
-	varList+=ID (',' varList+=ID)* 'is' entity=ID;
+BOOL:
+	'True' | 'False';
 
-From:
-	'from' importedNs=Link '[' listProp+=ID+ (',' listProp+=ID)*']';
+//##################################################[Query]##################################################
 
-Namespace:
-	'namespace' name=ID link=Link (classes+=Class)*;
+Query:
+	'query' namespaces+=QueryNamespace+ instances+=QueryInstance+;
 
-DataNamespace:
-	'namespace' name=ID link=Link (from=From)? (bindings+=Binding)* (propBind+=PropertyBinding)+;
+QueryNamespace:
+	'from' id=ID url=STRING;
 
-Class returns _Class:
-	'class' name=ID (':' superClass=ID)? (properties+=Property)*;
+QueryInstance:
+	id=ID (params+=ID)* select=Select;
 
-Property returns _Property:
-	'property' name=ID type=(ObjectType | SimpleType) (cardinality=Cardinality)?; // default card is 0..*
+Select:
+	'SELECT' selectList+=ID (',' selectList+=ID)* where=Where;
 
-Cardinality:
-	'cardinality' min=INT '..' max=Entries;
+Where:
+	'WHERE' constraintList+=Triple+;
 
-ObjectType returns Type:
-	{ClassRef} id=ID;
+Triple:
+	subject=ID predicate=Predicate object=QueryObject;
 
-SimpleType returns Type:
-	{_String} 'String' | {_Integer} 'Integer' | {_Float} 'Float' | {_Boolean} 'Boolean';
+Predicate:
+	namespace=ID ':' property=ID;
 
-Entries:
-	INT | '*';
+QueryObject:
+	{QueryID} id=ID | {QueryLiteral} id=STRING | {QueryBool} id=BOOL;
 
-Link:
-	URL;
 
-URL:
-	STRING;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
