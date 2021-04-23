@@ -114,6 +114,8 @@ class RdfDslGenerator extends AbstractGenerator {
 			«property.cardinality.generate»
 		«ENDIF»
 	'''
+	
+	def dispatch String generate(ClassRef type) '''ns['«type.id»']'''
 
 	def dispatch String generate(_Float type) '''XSD.float'''
 
@@ -123,7 +125,7 @@ class RdfDslGenerator extends AbstractGenerator {
 
 	def dispatch String generate(_Boolean type) '''XSD.boolean'''
 
-	def dispatch String generate(ClassRef type) '''ns['«type.id»']'''
+	
 
 	def dispatch String generate(Cardinality cardinality) '''
 		cardmin_entity = ns['_%s_%s_cardmin' % (_class.split('#')[-1], prop.split('#')[-1])]
