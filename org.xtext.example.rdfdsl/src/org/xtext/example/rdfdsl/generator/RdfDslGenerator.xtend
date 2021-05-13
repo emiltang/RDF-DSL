@@ -44,236 +44,236 @@ import org.xtext.example.rdfdsl.rdfDsl.QueryNamespace
 class RdfDslGenerator extends AbstractGenerator {
 
 //#################################################[GENERAL]#################################################
-	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		val root = resource.allContents.filter(Root).next
-		root.model !== null ? fsa.generateFile('model.py', root.model.generate)
-		root.data !== null ? fsa.generateFile('data.py', root.data.generate)
-		root.query !== null ? fsa.generateFile('query.py', root.query.generate)
-		root.cypherQuery !== null ? new CypherQueryHelper().doGenerate(root.cypherQuery, fsa)
+    override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+        val root = resource.allContents.filter(Root).next
+        root.model !== null ? fsa.generateFile('model.py', root.model.generate)
+        root.data !== null ? fsa.generateFile('data.py', root.data.generate)
+        root.query !== null ? fsa.generateFile('query.py', root.query.generate)
+        root.cypherQuery !== null ? new CypherQueryHelper().doGenerate(resource, fsa)
 
-	}
+    }
 
 //##################################################[MODEL]##################################################
-	def dispatch String generate(Model model) '''
-		import rdflib as rdf		
-		RDF  = rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
-		RDFS = rdf.Namespace('http://www.w3.org/2000/01/rdf-schema#')
-		OWL  = rdf.Namespace('http://www.w3.org/2002/07/owl#')
-		XSD  = rdf.Namespace('http://www.w3.org/2001/XMLSchema#')
-		
-		g = rdf.Graph()
-		g.bind('rdf', RDF)
-		g.bind('rdfs', RDFS)
-		g.bind('owl', OWL)
-		g.bind('xsd', XSD)
-		
-		«FOR namespace : model.namespaces»
-			«namespace.generate»
-		«ENDFOR»
-		
-		print(g.serialize(format="turtle").decode("utf-8"))
-		g.serialize("temp.ttl", 'turtle')
-	'''
+    def dispatch String generate(Model model) '''
+        import rdflib as rdf		
+        RDF  = rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+        RDFS = rdf.Namespace('http://www.w3.org/2000/01/rdf-schema#')
+        OWL  = rdf.Namespace('http://www.w3.org/2002/07/owl#')
+        XSD  = rdf.Namespace('http://www.w3.org/2001/XMLSchema#')
+        
+        g = rdf.Graph()
+        g.bind('rdf', RDF)
+        g.bind('rdfs', RDFS)
+        g.bind('owl', OWL)
+        g.bind('xsd', XSD)
+        
+        «FOR namespace : model.namespaces»
+            «namespace.generate»
+        «ENDFOR»
+        
+        print(g.serialize(format="turtle").decode("utf-8"))
+        g.serialize("temp.ttl", 'turtle')
+    '''
 
-	def dispatch String generate(Namespace namespace) '''
-		«IF namespace.link.replace('"', '').endsWith('#')»		
-			ns = rdf.Namespace(«namespace.link»)
-		«ELSE»
-			ns = rdf.Namespace("«namespace.link.replace('"', '')+"#"»")
-		«ENDIF»
-		g.bind('«namespace.name»', ns)
-		
-		«FOR _class : namespace.classes»
-			«_class.generate»
-		«ENDFOR»
-	'''
+    def dispatch String generate(Namespace namespace) '''
+        «IF namespace.link.replace('"', '').endsWith('#')»		
+            ns = rdf.Namespace(«namespace.link»)
+        «ELSE»
+            ns = rdf.Namespace("«namespace.link.replace('"', '')+"#"»")
+        «ENDIF»
+        g.bind('«namespace.name»', ns)
+        
+        «FOR _class : namespace.classes»
+            «_class.generate»
+        «ENDFOR»
+    '''
 
-	def dispatch String generate(_Class _class) '''
-		«IF _class.superClass === null»
-			parent = OWL.Class
-			_type = RDF.type
-		«ELSE»
-			parent = ns['«_class.superClass»']
-			_type = RDFS.subClassOf
-		«ENDIF»		
-		_class = ns['«_class.name»']
-		g.add((_class, _type, parent))
-		
-		g.add((_class, RDF['label'], rdf.Literal('«_class.name»')))
-		
-		«FOR property : _class.properties»
-			«property.generate»
-		«ENDFOR»
-	'''
+    def dispatch String generate(_Class _class) '''
+        «IF _class.superClass === null»
+            parent = OWL.Class
+            _type = RDF.type
+        «ELSE»
+            parent = ns['«_class.superClass»']
+            _type = RDFS.subClassOf
+        «ENDIF»		
+        _class = ns['«_class.name»']
+        g.add((_class, _type, parent))
+        
+        g.add((_class, RDF['label'], rdf.Literal('«_class.name»')))
+        
+        «FOR property : _class.properties»
+            «property.generate»
+        «ENDFOR»
+    '''
 
-	def dispatch String generate(_Property property) '''
-		prop = ns['«property.name»']
-		prop_type = «IF property.type instanceof ClassRef»OWL.ObjectProperty«ELSE»OWL.DataProperty«ENDIF»
-		g.add((prop, RDF.type, prop_type))
-		g.add((prop, RDFS.domain, _class))
-		g.add((prop, RDFS.range, «property.type.generate»))
-		
-		«IF property.cardinality !== null»
-			«property.cardinality.generate»
-		«ENDIF»
-	'''
+    def dispatch String generate(_Property property) '''
+        prop = ns['«property.name»']
+        prop_type = «IF property.type instanceof ClassRef»OWL.ObjectProperty«ELSE»OWL.DataProperty«ENDIF»
+        g.add((prop, RDF.type, prop_type))
+        g.add((prop, RDFS.domain, _class))
+        g.add((prop, RDFS.range, «property.type.generate»))
+        
+        «IF property.cardinality !== null»
+            «property.cardinality.generate»
+        «ENDIF»
+    '''
 
-	def dispatch String generate(ClassRef type) '''ns['«type.id»']'''
+    def dispatch String generate(ClassRef type) '''ns['«type.id»']'''
 
-	def dispatch String generate(_Float type) '''XSD.float'''
+    def dispatch String generate(_Float type) '''XSD.float'''
 
-	def dispatch String generate(_Integer type) '''XSD.integer'''
+    def dispatch String generate(_Integer type) '''XSD.integer'''
 
-	def dispatch String generate(_String type) '''XSD.string'''
+    def dispatch String generate(_String type) '''XSD.string'''
 
-	def dispatch String generate(_Boolean type) '''XSD.boolean'''
+    def dispatch String generate(_Boolean type) '''XSD.boolean'''
 
-	def dispatch String generate(Cardinality cardinality) '''
-		cardmin_entity = ns['_%s_%s_cardmin' % (_class.split('#')[-1], prop.split('#')[-1])]
-		g.add( (_class, OWL.equivalentClass, cardmin_entity) )
-		g.add( (cardmin_entity, RDF.type, OWL.Restriction) )
-		g.add( (cardmin_entity, OWL.onProperty, prop) )
-		g.add( (cardmin_entity, OWL.minCardinality, rdf.Literal(«cardinality.min», datatype=XSD.integer)) )
-		
-		«IF cardinality.max != '*'»
-			cardmax_entity = ns['_%s_%s_cardmax' % (_class.split('#')[-1], prop.split('#')[-1])]
-			g.add( (_class, OWL.equivalentClass, cardmax_entity) )
-			g.add( (cardmax_entity, RDF.type, OWL.Restriction) )
-			g.add( (cardmax_entity, OWL.onProperty, prop) )
-			g.add( (cardmax_entity, OWL.maxCardinality, rdf.Literal(«cardinality.max», datatype=XSD.integer)) )
-		«ENDIF»
-		
-	'''
+    def dispatch String generate(Cardinality cardinality) '''
+        cardmin_entity = ns['_%s_%s_cardmin' % (_class.split('#')[-1], prop.split('#')[-1])]
+        g.add( (_class, OWL.equivalentClass, cardmin_entity) )
+        g.add( (cardmin_entity, RDF.type, OWL.Restriction) )
+        g.add( (cardmin_entity, OWL.onProperty, prop) )
+        g.add( (cardmin_entity, OWL.minCardinality, rdf.Literal(«cardinality.min», datatype=XSD.integer)) )
+        
+        «IF cardinality.max != '*'»
+            cardmax_entity = ns['_%s_%s_cardmax' % (_class.split('#')[-1], prop.split('#')[-1])]
+            g.add( (_class, OWL.equivalentClass, cardmax_entity) )
+            g.add( (cardmax_entity, RDF.type, OWL.Restriction) )
+            g.add( (cardmax_entity, OWL.onProperty, prop) )
+            g.add( (cardmax_entity, OWL.maxCardinality, rdf.Literal(«cardinality.max», datatype=XSD.integer)) )
+        «ENDIF»
+        
+    '''
 
 //##################################################[DATA]##################################################
-	def dispatch String generate(Data data) '''
-		import rdflib as rdf
-		RDF  = rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
-		RDFS = rdf.Namespace('http://www.w3.org/2000/01/rdf-schema#')
-		OWL  = rdf.Namespace('http://www.w3.org/2002/07/owl#')
-		XSD  = rdf.Namespace('http://www.w3.org/2001/XMLSchema#')
-		g = rdf.Graph()
-		g.parse("temp.ttl", format='turtle')
-		
-		«FOR dataNamespace : data.namespaces»
-			«dataNamespace.generate»
-		«ENDFOR»
-		
-		g.serialize("temp.ttl", 'turtle')
-	'''
+    def dispatch String generate(Data data) '''
+        import rdflib as rdf
+        RDF  = rdf.Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+        RDFS = rdf.Namespace('http://www.w3.org/2000/01/rdf-schema#')
+        OWL  = rdf.Namespace('http://www.w3.org/2002/07/owl#')
+        XSD  = rdf.Namespace('http://www.w3.org/2001/XMLSchema#')
+        g = rdf.Graph()
+        g.parse("temp.ttl", format='turtle')
+        
+        «FOR dataNamespace : data.namespaces»
+            «dataNamespace.generate»
+        «ENDFOR»
+        
+        g.serialize("temp.ttl", 'turtle')
+    '''
 
-	def dispatch String generate(DataNamespace dataNs) '''
-		«IF dataNs.link.replace('"', '').endsWith('#')»		
-			dns = rdf.Namespace(«dataNs.link»)
-		«ELSE»
-			dns = rdf.Namespace("«dataNs.link.replace('"', '')+"#"»")
-		«ENDIF»
-		g.bind('«dataNs.name»', dns)
-		
-		«dataNs.from.generate»
-		
-		«FOR bind : dataNs.bindings»
-			«bind.generate»
-		«ENDFOR»
-		
-		«FOR pbind : dataNs.propBind»
-			«pbind.generate»
-		«ENDFOR»
-		
-	'''
+    def dispatch String generate(DataNamespace dataNs) '''
+        «IF dataNs.link.replace('"', '').endsWith('#')»		
+            dns = rdf.Namespace(«dataNs.link»)
+        «ELSE»
+            dns = rdf.Namespace("«dataNs.link.replace('"', '')+"#"»")
+        «ENDIF»
+        g.bind('«dataNs.name»', dns)
+        
+        «dataNs.from.generate»
+        
+        «FOR bind : dataNs.bindings»
+            «bind.generate»
+        «ENDFOR»
+        
+        «FOR pbind : dataNs.propBind»
+            «pbind.generate»
+        «ENDFOR»
+        
+    '''
 
-	def dispatch String generate(From from) '''
-		«IF from.importedNs.replace('"', '').endsWith('#')»		
-			ins = rdf.Namespace(«from.importedNs»)
-		«ELSE»
-			ins = rdf.Namespace("«from.importedNs.replace('"', '')+"#"»")
-		«ENDIF»
-		«FOR prop : from.listProp»
-			«prop» = ins['«prop»']
-		«ENDFOR»
-	'''
+    def dispatch String generate(From from) '''
+        «IF from.importedNs.replace('"', '').endsWith('#')»		
+            ins = rdf.Namespace(«from.importedNs»)
+        «ELSE»
+            ins = rdf.Namespace("«from.importedNs.replace('"', '')+"#"»")
+        «ENDIF»
+        «FOR prop : from.listProp»
+            «prop» = ins['«prop»']
+        «ENDFOR»
+    '''
 
-	def dispatch String generate(Binding binding) '''
-		«FOR _var : binding.varList»
-			«_var» = dns["«_var»"]
-			g.add( («_var», RDF.type, «binding.entity») )
-		«ENDFOR»
-		
-	'''
+    def dispatch String generate(Binding binding) '''
+        «FOR _var : binding.varList»
+            «_var» = dns["«_var»"]
+            g.add( («_var», RDF.type, «binding.entity») )
+        «ENDFOR»
+        
+    '''
 
-	def dispatch String generate(PropertyBinding pbind) '''
-		current = «pbind.name»
-		«FOR dprop : pbind.property»
-			«dprop.generate»
-		«ENDFOR»
-	'''
+    def dispatch String generate(PropertyBinding pbind) '''
+        current = «pbind.name»
+        «FOR dprop : pbind.property»
+            «dprop.generate»
+        «ENDFOR»
+    '''
 
-	def dispatch String generate(DataProperty dprop) '''
-		«IF dprop.value.nullOrEmpty»
-			g.add( (current, «dprop.prop», rdf.Literal(«dprop.SValue»)) )
-		«ELSE»
-			«FOR _val : dprop.value»
-				g.add( (current, «dprop.prop», «_val») )
-			«ENDFOR»
-		«ENDIF»
-	'''
+    def dispatch String generate(DataProperty dprop) '''
+        «IF dprop.value.nullOrEmpty»
+            g.add( (current, «dprop.prop», rdf.Literal(«dprop.SValue»)) )
+        «ELSE»
+            «FOR _val : dprop.value»
+                g.add( (current, «dprop.prop», «_val») )
+            «ENDFOR»
+        «ENDIF»
+    '''
 
 //##################################################[Query]##################################################
-	def dispatch String generate(Query query) '''
-		import rdflib as rdf
-		import rdflib.plugins.sparql as prep_queue
-		g = rdf.Graph()
-		g.parse("temp.ttl", format="turtle")
-		prefixlist = [«FOR prefix : query.namespaces SEPARATOR ', '»«prefix.generate»«ENDFOR»]
-		
-		«FOR instance : query.instances»
-			«instance.generate»
-		«ENDFOR»
-		
-		if __name__ == "__main__":
-			«FOR instance : query.instances»
-				for res in «instance.id»(«FOR arg : instance.params SEPARATOR ', '»"«arg»"«ENDFOR»):
-					print(res)
-			«ENDFOR»
-	'''
+    def dispatch String generate(Query query) '''
+        import rdflib as rdf
+        import rdflib.plugins.sparql as prep_queue
+        g = rdf.Graph()
+        g.parse("temp.ttl", format="turtle")
+        prefixlist = [«FOR prefix : query.namespaces SEPARATOR ', '»«prefix.generate»«ENDFOR»]
+        
+        «FOR instance : query.instances»
+            «instance.generate»
+        «ENDFOR»
+        
+        if __name__ == "__main__":
+        	«FOR instance : query.instances»
+        	    for res in «instance.id»(«FOR arg : instance.params SEPARATOR ', '»"«arg»"«ENDFOR»):
+        	    	print(res)
+        	«ENDFOR»
+    '''
 
-	def dispatch String generate(QueryNamespace namespace) '''"prefix «namespace.id»: <«namespace.url»>"'''
+    def dispatch String generate(QueryNamespace namespace) '''"prefix «namespace.id»: <«namespace.url»>"'''
 
-	def dispatch String generate(QueryInstance inst) '''
-		def «inst.id»(«FOR arg : inst.params SEPARATOR ', '»«arg»«ENDFOR»):
-			ps = "".join(prefixlist)
-			q = prep_queue.prepareQuery(ps +
-				«inst.select.generate»
-			)
-			return g.query(q, initBindings={«FOR arg : inst.params SEPARATOR ', '»'«arg»':rdf.Literal(«arg»)«ENDFOR»})
-		
-	'''
+    def dispatch String generate(QueryInstance inst) '''
+        def «inst.id»(«FOR arg : inst.params SEPARATOR ', '»«arg»«ENDFOR»):
+        	ps = "".join(prefixlist)
+        	q = prep_queue.prepareQuery(ps +
+        		«inst.select.generate»
+        	)
+        	return g.query(q, initBindings={«FOR arg : inst.params SEPARATOR ', '»'«arg»':rdf.Literal(«arg»)«ENDFOR»})
+        
+    '''
 
-	def dispatch String generate(Select select) '''
-		«"'''"»
-			SELECT«FOR single : select.selectList» ?«single»«ENDFOR»
-			«select.where.generate»
-		«"'''"»
-	'''
+    def dispatch String generate(Select select) '''
+        «"'''"»
+        	SELECT«FOR single : select.selectList» ?«single»«ENDFOR»
+        	«select.where.generate»
+        «"'''"»
+    '''
 
-	def dispatch String generate(Where where) '''
-		WHERE {
-			«FOR trip : where.constraintList»
-				«trip.generate»
-			«ENDFOR»
-		}
-	'''
+    def dispatch String generate(Where where) '''
+        WHERE {
+        	«FOR trip : where.constraintList»
+        	    «trip.generate»
+        	«ENDFOR»
+        }
+    '''
 
-	def dispatch String generate(Triple trip) '''
-		?«trip.subject» «trip.predicate.generate» «trip.object.generate» .
-	'''
+    def dispatch String generate(Triple trip) '''
+        ?«trip.subject» «trip.predicate.generate» «trip.object.generate» .
+    '''
 
-	def dispatch String generate(Predicate pred) '''«pred.namespace»:«pred.property»'''
+    def dispatch String generate(Predicate pred) '''«pred.namespace»:«pred.property»'''
 
-	def dispatch String generate(QueryID queryID) '''?«queryID.id»'''
+    def dispatch String generate(QueryID queryID) '''?«queryID.id»'''
 
-	def dispatch String generate(QueryLiteral queryLit) '''"«queryLit.id»"'''
+    def dispatch String generate(QueryLiteral queryLit) '''"«queryLit.id»"'''
 
-	def dispatch String generate(QueryBool queryBool) '''«queryBool.id»'''
+    def dispatch String generate(QueryBool queryBool) '''«queryBool.id»'''
 
 }

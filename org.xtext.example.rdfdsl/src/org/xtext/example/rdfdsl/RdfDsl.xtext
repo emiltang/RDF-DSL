@@ -20,7 +20,7 @@ QueryName:
 	name=ID namespace=STRING query=CypherQuery;
 
 CypherQuery:
-	match+=Match+ where+=CypherWhere+ return=Return;
+	match+=Match+ where+=CypherWhere* return=Return;
 
 Match:
 	'MATCH' from=Node (fromSeperator=Seperator relation=CypherRelation toSeperator=Seperator to=Node)?;
