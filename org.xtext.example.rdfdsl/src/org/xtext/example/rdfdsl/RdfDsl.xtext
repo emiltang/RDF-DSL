@@ -2,11 +2,9 @@ grammar org.xtext.example.rdfdsl.RdfDsl with org.eclipse.xtext.common.Terminals
 
 generate rdfDsl "http://www.xtext.org/example/rdfdsl/RdfDsl"
 
-
 //#################################################[GENERAL]#################################################
-
 Root:
-	(model=Model)? (data=Data)? (query=Query)?;
+	(model=Model)? (data=Data)? (query=Query)? (cypherQuery=CypherQueries)?;
 
 Link:
 	URL;
@@ -14,8 +12,48 @@ Link:
 URL:
 	STRING;
 
-//##################################################[MODEL]##################################################
+//***CypherQuery****
+CypherQueries:
+	'CypherQuery' names+=QueryName+;
 
+QueryName:
+	name=ID namespace=STRING query=CypherQuery;
+
+CypherQuery:
+	match+=Match+ where+=CypherWhere+ return=Return;
+
+Match:
+	'MATCH' from=Node (fromSeperator=Seperator relation=CypherRelation toSeperator=Seperator to=Node)?;
+
+Seperator:
+	'-' | '->';
+
+CypherRelation:
+	'[:' id=ID ']';
+
+Negation:
+	'NOT';
+
+CypherWhere:
+	'WHERE' (negation=Negation)? identifier=ID '.' property=ID '=' string=STRING;
+
+DOUBLE:
+	INT '.' INT;
+
+CypherType:
+	{CypherInt} value=INT | {CypherString} value=STRING
+	| {CypherBool} value=BOOL | {CypherDouble} value=DOUBLE;
+
+Pattern:
+	property=ID ':' value=CypherType;
+
+Node:
+	'(' identifier=ID (':' type=ID ('{' pattern+=Pattern (',' pattern+=Pattern)* '}')?)?')';
+
+Return:
+	'RETURN' ids+=ID (',' ids+=ID)* (';')?;
+
+//##################################################[MODEL]##################################################
 Model:
 	'model' namespaces+=Namespace+;
 
@@ -39,9 +77,8 @@ Cardinality:
 
 Entries:
 	INT | '*';
-	
+
 //##################################################[DATA]##################################################
-	
 Data:
 	'data' namespaces+=DataNamespace+;
 
@@ -50,10 +87,10 @@ DataNamespace:
 
 From:
 	'from' importedNs=Link '[' listProp+=ID+ (',' listProp+=ID)*']';
-	
+
 Binding:
 	varList+=ID (',' varList+=ID)* 'is' entity=ID;
-	
+
 PropertyBinding:
 	name=ID ':' property+=DataProperty+;
 
@@ -68,7 +105,6 @@ BOOL:
 	'True' | 'False';
 
 //##################################################[Query]##################################################
-
 Query:
 	'query' namespaces+=QueryNamespace+ instances+=QueryInstance+;
 
@@ -92,24 +128,3 @@ Predicate:
 
 QueryObject:
 	{QueryID} id=ID | {QueryLiteral} id=STRING | {QueryBool} id=BOOL;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

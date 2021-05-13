@@ -4,6 +4,7 @@
 package org.xtext.example.rdfdsl.generator
 
 import org.eclipse.emf.ecore.resource.Resource
+
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
@@ -48,6 +49,8 @@ class RdfDslGenerator extends AbstractGenerator {
 		root.model !== null ? fsa.generateFile('model.py', root.model.generate)
 		root.data !== null ? fsa.generateFile('data.py', root.data.generate)
 		root.query !== null ? fsa.generateFile('query.py', root.query.generate)
+		root.cypherQuery !== null ? new CypherQueryHelper().doGenerate(root.cypherQuery, fsa)
+
 	}
 
 //##################################################[MODEL]##################################################
@@ -114,7 +117,7 @@ class RdfDslGenerator extends AbstractGenerator {
 			«property.cardinality.generate»
 		«ENDIF»
 	'''
-	
+
 	def dispatch String generate(ClassRef type) '''ns['«type.id»']'''
 
 	def dispatch String generate(_Float type) '''XSD.float'''
