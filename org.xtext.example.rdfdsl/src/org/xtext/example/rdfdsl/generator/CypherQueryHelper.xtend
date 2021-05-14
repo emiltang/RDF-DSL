@@ -32,6 +32,11 @@ import org.xtext.example.rdfdsl.rdfDsl.From
 import org.xtext.example.rdfdsl.rdfDsl.Binding
 import org.xtext.example.rdfdsl.rdfDsl.PropertyBinding
 import org.xtext.example.rdfdsl.rdfDsl.DataProperty
+import org.xtext.example.rdfdsl.rdfDsl.CypherProperty
+import org.xtext.example.rdfdsl.rdfDsl.Comparison
+import org.xtext.example.rdfdsl.rdfDsl.And
+import org.xtext.example.rdfdsl.rdfDsl.LessThan
+import org.xtext.example.rdfdsl.rdfDsl.Equals
 
 class CypherQueryHelper {
 
@@ -115,7 +120,7 @@ class CypherQueryHelper {
         «ENDFOR»
         «IF to !== null»
             «FOR pattern : to.pattern»
-                ?«from.identifier» «pattern.generate» .
+                ?«to.identifier» «pattern.generate» .
             «ENDFOR»
         «ENDIF»
         «IF from.type !== null»
@@ -141,13 +146,27 @@ class CypherQueryHelper {
 
     def dispatch String generate(CypherWhere it) '''
         «IF negation === null»
-            ?«identifier» :«property» «string».
+            «comparison.generate»
+            «IF operator instanceof And»
+                «otherComparison.generate»
+            «ENDIF»
         «ELSE»
             FILTER NOT EXSITS {
-            	?«identifier» :«property» "«string»".
+                «comparison.generate» .
             }
         «ENDIF»
     '''
+
+    def dispatch String generate(Comparison it) '''
+        «IF operator instanceof Equals »
+            «left.generate» «right.generate» .
+        «ELSEIF operator instanceof LessThan»
+            «left.generate» ?c«left.identifier» .
+            FILTER (?c«left.identifier» < «right.generate»)
+        «ENDIF»
+    '''
+
+    def dispatch String generate(CypherProperty it) '''?«identifier» :«property»'''
 
     def dispatch String generate(Node it) '''?«identifier»'''
 
@@ -258,7 +277,7 @@ class CypherQueryHelper {
             :«propertyBinding.name» data:«prop» «SValue.toLowerCase» .
         «ELSE»
             «FOR value : value»
-                data:«propertyBinding.name» data:«prop» «value» .
+                :«propertyBinding.name» data:«prop» :«value» .
             «ENDFOR»
         «ENDIF»
     '''
