@@ -3,6 +3,18 @@
  */
 package org.xtext.example.rdfdsl.scoping
 
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EReference
+import org.eclipse.xtext.scoping.IScope
+import org.xtext.example.rdfdsl.rdfDsl.CypherProperty
+import org.xtext.example.rdfdsl.rdfDsl.Identifier
+import org.xtext.example.rdfdsl.rdfDsl.Node
+import org.xtext.example.rdfdsl.rdfDsl.QueryName
+import org.xtext.example.rdfdsl.rdfDsl.RdfDslPackage.Literals
+
+import static extension org.eclipse.xtext.scoping.Scopes.scopeFor
+import static extension org.eclipse.xtext.EcoreUtil2.getAllContentsOfType
+import static extension org.eclipse.xtext.EcoreUtil2.getContainerOfType
 
 /**
  * This class contains custom scoping description.
@@ -12,4 +24,18 @@ package org.xtext.example.rdfdsl.scoping
  */
 class RdfDslScopeProvider extends AbstractRdfDslScopeProvider {
 
+    def static provideNodes(EObject context) {
+        context.getContainerOfType(QueryName).getAllContentsOfType(Node).scopeFor
+    }
+
+    override IScope getScope(EObject context, EReference reference) {
+        switch context {
+            CypherProperty case reference == Literals::CYPHER_PROPERTY__IDENTIFIER:
+                context.provideNodes
+            Identifier case reference == Literals::IDENTIFIER__IDENTIFIER:
+                context.provideNodes
+            default:
+                super.getScope(context, reference)
+        }
+    }
 }

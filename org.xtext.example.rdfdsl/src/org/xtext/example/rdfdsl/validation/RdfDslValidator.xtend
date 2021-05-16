@@ -6,6 +6,10 @@ package org.xtext.example.rdfdsl.validation
 import org.eclipse.xtext.validation.Check
 import org.xtext.example.rdfdsl.rdfDsl.QueryInstance
 import org.xtext.example.rdfdsl.rdfDsl.RdfDslPackage
+import org.xtext.example.rdfdsl.rdfDsl.Comparison
+import org.xtext.example.rdfdsl.rdfDsl.Equals
+import org.xtext.example.rdfdsl.rdfDsl.CypherProperty
+import org.xtext.example.rdfdsl.rdfDsl.NotEquals
 
 /**
  * This class contains custom validation rules. 
@@ -14,22 +18,32 @@ import org.xtext.example.rdfdsl.rdfDsl.RdfDslPackage
  */
 class RdfDslValidator extends AbstractRdfDslValidator {
 
-	public static String[] Python_Keywords = #["and", "as", "assert", "break", "class", "continue", "def", "del",
-		"elif", "else", "except", "False", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda",
-		"None", "nonlocal", "not", "or", "pass", "raise", "return", "True", "try", "while", "with", "yield"]
+    public static String[] Python_Keywords = #["and", "as", "assert", "break", "class", "continue", "def", "del",
+        "elif", "else", "except", "False", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda",
+        "None", "nonlocal", "not", "or", "pass", "raise", "return", "True", "try", "while", "with", "yield"]
 
-	@Check
-	def idContainsKeyword(QueryInstance qins) {
-		if (Python_Keywords.contains(qins.id)){
-			error('Name cannot contain python keywords', RdfDslPackage.Literals.QUERY_INSTANCE__ID, "Keyword Error")
-		}
-	}
-	@Check
-	def paramsContainsKeyword(QueryInstance qins) {
-		for(param : qins.params){
-			if(Python_Keywords.contains(param)){
-				error('Parameters cannot contain python keywords. Error at: ' + param, RdfDslPackage.Literals.QUERY_INSTANCE__PARAMS, "Keyword Error")
-			}
-		}
-	}
+    @Check
+    def idContainsKeyword(QueryInstance qins) {
+        if (Python_Keywords.contains(qins.id)) {
+            error('Name cannot contain python keywords', RdfDslPackage.Literals.QUERY_INSTANCE__ID, "Keyword Error")
+        }
+    }
+
+    @Check
+    def paramsContainsKeyword(QueryInstance qins) {
+        for (param : qins.params) {
+            if (Python_Keywords.contains(param)) {
+                error('Parameters cannot contain python keywords. Error at: ' + param,
+                    RdfDslPackage.Literals.QUERY_INSTANCE__PARAMS, "Keyword Error")
+            }
+        }
+    }
+
+    @Check
+    def paramsContainsKeyword(Comparison it) {
+        if (!(operator instanceof Equals || operator instanceof NotEquals ) && right instanceof CypherProperty) {
+            error('Equals and Not Equals operator cannot be used with object references.',
+                RdfDslPackage.Literals.COMPARISON__RIGHT, "Keyword Error")
+        }
+    }
 }

@@ -37,6 +37,20 @@ import org.xtext.example.rdfdsl.rdfDsl.Comparison
 import org.xtext.example.rdfdsl.rdfDsl.And
 import org.xtext.example.rdfdsl.rdfDsl.LessThan
 import org.xtext.example.rdfdsl.rdfDsl.Equals
+import org.xtext.example.rdfdsl.rdfDsl.GreaterThan
+import org.xtext.example.rdfdsl.rdfDsl.GreaterThanOrEquals
+import org.xtext.example.rdfdsl.rdfDsl.LessThanOrEquals
+import org.xtext.example.rdfdsl.rdfDsl.NotEquals
+import org.xtext.example.rdfdsl.rdfDsl.Or
+import org.xtext.example.rdfdsl.rdfDsl.Xor
+import org.xtext.example.rdfdsl.rdfDsl.ReturnExp
+import org.xtext.example.rdfdsl.rdfDsl.Expression
+import org.xtext.example.rdfdsl.rdfDsl.Addition
+import org.xtext.example.rdfdsl.rdfDsl.Subtraction
+import org.xtext.example.rdfdsl.rdfDsl.Modulus
+import org.xtext.example.rdfdsl.rdfDsl.Divison
+import org.xtext.example.rdfdsl.rdfDsl.Multiplication
+import org.xtext.example.rdfdsl.rdfDsl.Identifier
 
 class CypherQueryHelper {
 
@@ -111,23 +125,41 @@ class CypherQueryHelper {
     '''
 
     def dispatch String generate(Return it) '''
-        «FOR id : ids SEPARATOR ' '»?«id»«ENDFOR»
+        «FOR id : ids SEPARATOR ' '»«id.generate»«ENDFOR»
     '''
+
+    def dispatch String generate(ReturnExp it) '''
+        «IF newId ===null»
+            «id.generate»
+        «ELSE»
+            («id.generate» AS ?«newId»)
+        «ENDIF»
+    '''
+
+    def dispatch String generate(Addition it) '''«right.generate»+«left.generate»'''
+
+    def dispatch String generate(Subtraction it) '''«right.generate»+«left.generate»'''
+
+    def dispatch String generate(Modulus it) '''«right.generate»+«left.generate»'''
+
+    def dispatch String generate(Divison it) '''«right.generate»+«left.generate»'''
+
+    def dispatch String generate(Multiplication it) '''«right.generate»*«left.generate»'''
 
     def dispatch String generate(Match it) '''
         «FOR pattern : from.pattern»
-            ?«from.identifier» «pattern.generate» .
+            ?«from.name» «pattern.generate» .
         «ENDFOR»
         «IF to !== null»
             «FOR pattern : to.pattern»
-                ?«to.identifier» «pattern.generate» .
+                ?«to.name» «pattern.generate» .
             «ENDFOR»
         «ENDIF»
         «IF from.type !== null»
-            ?«from.identifier» a :«from.type»  .
+            ?«from.name» a :«from.type»  .
         «ENDIF»
         «IF to !== null && to.type !== null»
-            ?«to.identifier» a :«to.type» .
+            ?«to.name» a :«to.type» .
         «ENDIF»
         «IF to !== null»
             «from.generate» «relation.generate» «to.generate» . 
@@ -144,31 +176,60 @@ class CypherQueryHelper {
 
     def dispatch String generate(Pattern it) ''':«property» «value.generate»'''
 
+    /**
+     * TODO: XOR is hard
+     */
     def dispatch String generate(CypherWhere it) '''
-        «IF negation === null»
+        «IF operator === null»
             «comparison.generate»
-            «IF operator instanceof And»
+        «ELSEIF operator instanceof And»
+            «comparison.generate»
+            «otherComparison.generate»
+        «ELSEIF operator instanceof Or»
+            {
+                «comparison.generate»
+            } UNION {
                 «otherComparison.generate»
-            «ENDIF»
-        «ELSE»
-            FILTER NOT EXSITS {
-                «comparison.generate» .
+            }
+        «ELSEIF operator instanceof Xor»
+            {
+                «comparison.generate»
+                MINUS {
+                    «otherComparison.generate»
+                }
+            } UNION {
+                «otherComparison.generate»
+                MINUS {
+                     «comparison.generate»
+                }
             }
         «ENDIF»
     '''
 
+    def dispatch String generate(LessThan it) '''<'''
+
+    def dispatch String generate(GreaterThanOrEquals it) '''>='''
+
+    def dispatch String generate(LessThanOrEquals it) '''<='''
+
+    def dispatch String generate(GreaterThan it) '''>'''
+
+    def dispatch String generate(NotEquals it) '''!='''
+
+    def dispatch String generate(Equals it) '''='''
+
+    def dispatch String generate(Identifier it) '''?«identifier.name»'''
+
     def dispatch String generate(Comparison it) '''
-        «IF operator instanceof Equals »
-            «left.generate» «right.generate» .
-        «ELSEIF operator instanceof LessThan»
-            «left.generate» ?c«left.identifier» .
-            FILTER (?c«left.identifier» < «right.generate»)
-        «ENDIF»
+        «IF negation !== null»FILTER NOT EXSITS {«ENDIF»
+        «left.generate» ?c«left.identifier.name» .
+        FILTER (?c«left.identifier.name» «operator.generate» «right.generate»)
+        «IF negation !== null»}«ENDIF»
     '''
 
-    def dispatch String generate(CypherProperty it) '''?«identifier» :«property»'''
+    def dispatch String generate(CypherProperty it) '''?«identifier.name» :«property»'''
 
-    def dispatch String generate(Node it) '''?«identifier»'''
+    def dispatch String generate(Node it) '''?«name»'''
 
     def dispatch String generate(CypherRelation it) ''':«id»'''
 

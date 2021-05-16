@@ -35,13 +35,13 @@ Negation:
     'NOT';
 
 CypherWhere:
-    'WHERE' (negation=Negation)? comparison=Comparison (operator=BooleanOperator otherComparison=Comparison)?;
+    'WHERE' comparison=Comparison (operator=BooleanOperator otherComparison=Comparison)?;
 
 Comparison:
-    left=CypherProperty operator=ComparisonOperator right=(CypherProperty | CypherType);
+    (negation=Negation)? left=CypherProperty operator=ComparisonOperator right=(CypherProperty | CypherType);
 
 CypherProperty:
-    identifier=ID '.' property=ID;
+    identifier=[Node] '.' property=ID;
 
 DOUBLE:
     INT '.' INT;
@@ -54,19 +54,40 @@ Pattern:
     property=ID ':' value=CypherType;
 
 Node:
-    '(' identifier=ID (':' type=ID ('{' pattern+=Pattern (',' pattern+=Pattern)* '}')?)?')';
+    '(' name=ID (':' type=ID ('{' pattern+=Pattern (',' pattern+=Pattern)* '}')?)?')';
 
 Return:
-    'RETURN' ids+=ID (',' ids+=ID)* (';')?; 
+    'RETURN' ids+=ReturnExp (',' ids+=ReturnExp)* (';')?;
+
+ReturnExp:
+    id=PlusMinus ('AS' newId=ID)?;
 
 BooleanOperator:
     {And} 'AND' | {Or} 'OR' | {Xor} 'XOR';
 
 ComparisonOperator:
-     {Equals}'=' | {NotEquals}'<>' | {LessThan} '<' | {GreaterThan} '>' | {LessThanOrEquals}'<=' | {GreaterThanOrEquals}'>=';
+    {Equals} '=' | {NotEquals} '<>' | {LessThan} '<' | {GreaterThan} '>' | {LessThanOrEquals} '<=' |
+    {GreaterThanOrEquals} '>=';
 
-MathOperator:
-    '+' | '-' | '*' | '/' | '%' | '^';
+Literal:
+    CypherType;
+
+PlusMinus returns Expression:
+    MultDiv (('+' {Addition.left=current} | '-' {Subtraction.left=current} | '%' {Modulus.left=current}) right=MultDiv)*
+;
+
+MultDiv returns Expression:
+    ExponentExp (('/' {Divison.left=current} |'*' {Multiplication.left=current}) right=ExponentExp)*;
+
+ExponentExp returns Expression:
+    Primary ('^' {Exponent.left=current} right=Primary)*;
+
+
+Primary returns Expression:
+    Literal | Identifier;
+
+Identifier:
+    identifier=[Node];
 
 //##################################################[MODEL]##################################################
 Model:
